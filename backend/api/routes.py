@@ -13,14 +13,14 @@ Objectives:
 - Add sorting parameters
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException 
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
 from pydantic import BaseModel
 from typing import Optional, List
 
 from ..database.db import SessionLocal
-from ..database.model import Story, User, UserLogin, UserOut, UserRegister
+from ..database.model import  UserLogin, UserRegister
 from ..features.engagement import increment_story_views
 from ..features.stories import list_all_stories, get_story_by_id, create_new_story
 from ..features.auth import authenticate_user, register_user
@@ -170,7 +170,7 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
 
     if error:
         raise HTTPException(status_code=401, detail="Invalid information")
-    
+        
     return {"message": "Login Sucessfully!", "user_id": user.id} 
 
     

@@ -3,7 +3,7 @@
 Weave our tapestry serves as a platform for any users to post a specific story, myth, legend, epic, etc that ties to a culture of a nation, as well as informatively and educationally explore other cultures' stories.
 
 > [!WARNING]
-> WOT is still underdevelopment so in this readme you will only be able to view our progress locally.
+> WOT is still underdevelopment so in this readme you will only be able to view our progress.
 
 ## Installing
 
@@ -13,7 +13,7 @@ git clone https://github.com/PaullyScripter/weave-our-tapestry.git
 ```
 ### To set up the backend:
 
-1. Go to the backend folder.
+1. Go to root.
 - If Windows:
 ```
 python3 -m venv .venv
@@ -40,9 +40,9 @@ npm install
 > [!NOTE]
 > You can only run this locally.
 
-For backend:
+For backend (root):
 ```
-python -m uvicorn main:app --reload
+python3 -m uvicorn backend.main:app --reload
 ```
 
 For frontend:
@@ -56,7 +56,6 @@ npm run dev
 - [Backend](https://weave-our-tapestry.onrender.com/)
 - [API Docs](https://weave-our-tapestry.onrender.com/docs)
 - [UI Prototype](https://www.figma.com/design/6eNdOs9eR4xgMxLMHayxBq/WOT?node-id=0-1&t=GlQmHQXrR2i0VWxH-1)
-- [Documents](https://docs.google.com/document/d/1XGK9D7f0-yu0MbrGEl5tYBmG9O28vWZbOHnNx9ShaHg/edit?usp=sharing)
 
 ## Authors
 
@@ -68,7 +67,7 @@ npm run dev
 
 ## License
 
-This project is licensed and protected under [MIT](https://choosealicense.com/licenses/mit/).
+This project is licensed and protected under [GPL](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
 
 

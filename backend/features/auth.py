@@ -3,6 +3,7 @@ import secrets
 import hashlib
 from sqlalchemy.orm import Session
 
+
 from ..database.model import User
 
 PEPPER = os.getenv("PEPPER","")
@@ -60,6 +61,7 @@ def authenticate_user(db: Session, email: str, password: str):
         return None, "Failed to authenticate"
     
     return user, None
+
 
 
 

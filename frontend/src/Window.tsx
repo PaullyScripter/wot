@@ -8,6 +8,10 @@ type WindowProps = {
   initialWidth?: number;
   initialHeight?: number;
   onClose?: () => void;
+  onMinimize?: () => void;
+  zIndex?: number;
+  onFocus?: () => void;
+  isMinimized?: boolean;
 };
 
 export function Window({
@@ -18,43 +22,50 @@ export function Window({
   initialWidth = 700,
   initialHeight = 500,
   onClose,
+  onMinimize,
+  zIndex = 1,
+  onFocus,
+  isMinimized = false,
 }: WindowProps) {
   const [pos, setPos] = useState({ x: initialX, y: initialY });
-  const [size, setSize] = useState({
-    width: initialWidth,
-    height: initialHeight,
-  });
+  const [size, setSize] = useState({ width: initialWidth, height: initialHeight });
+  const [isMaximized, setIsMaximized] = useState(false);
+  const savedState = useRef({ x: initialX, y: initialY, width: initialWidth, height: initialHeight });
 
-  const dragRef = useRef({
-    dragging: false,
-    offsetX: 0,
-    offsetY: 0,
-  });
+  const dragRef = useRef({ dragging: false, offsetX: 0, offsetY: 0 });
+  const resizeRef = useRef({ resizing: false, startX: 0, startY: 0, startWidth: initialWidth, startHeight: initialHeight });
 
-  const resizeRef = useRef({
-    resizing: false,
-    startX: 0,
-    startY: 0,
-    startWidth: initialWidth,
-    startHeight: initialHeight,
-  });
+  function handleFocus() { onFocus?.(); }
 
   function startDrag(e: React.MouseEvent<HTMLDivElement>) {
+    if (isMaximized) return;
     e.preventDefault();
-    dragRef.current.dragging = true;
-    dragRef.current.offsetX = e.clientX - pos.x;
-    dragRef.current.offsetY = e.clientY - pos.y;
+    handleFocus();
+    dragRef.current = { dragging: true, offsetX: e.clientX - pos.x, offsetY: e.clientY - pos.y };
   }
 
   function startResize(e: React.MouseEvent<HTMLDivElement>) {
+    if (isMaximized) return;
     e.preventDefault();
     e.stopPropagation();
+    handleFocus();
+    resizeRef.current = { resizing: true, startX: e.clientX, startY: e.clientY, startWidth: size.width, startHeight: size.height };
+  }
 
-    resizeRef.current.resizing = true;
-    resizeRef.current.startX = e.clientX;
-    resizeRef.current.startY = e.clientY;
-    resizeRef.current.startWidth = size.width;
-    resizeRef.current.startHeight = size.height;
+  function toggleMaximize() {
+    if (isMaximized) {
+
+      setPos({ x: savedState.current.x, y: savedState.current.y });
+      setSize({ width: savedState.current.width, height: savedState.current.height });
+      setIsMaximized(false);
+    } else {
+
+      savedState.current = { x: pos.x, y: pos.y, width: size.width, height: size.height };
+      setPos({ x: 0, y: 0 });
+      setSize({ width: window.innerWidth, height: window.innerHeight - 48 });
+      setIsMaximized(true);
+      handleFocus();
+    }
   }
 
   useEffect(() => {
@@ -65,110 +76,107 @@ export function Window({
           y: Math.max(0, e.clientY - dragRef.current.offsetY),
         });
       }
-
       if (resizeRef.current.resizing) {
         const dx = e.clientX - resizeRef.current.startX;
         const dy = e.clientY - resizeRef.current.startY;
-
         setSize({
           width: Math.max(320, resizeRef.current.startWidth + dx),
           height: Math.max(220, resizeRef.current.startHeight + dy),
         });
       }
     }
-
     function onMouseUp() {
       dragRef.current.dragging = false;
       resizeRef.current.resizing = false;
     }
-
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
-
     return () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
     };
-  }, [pos.x, pos.y, size.width, size.height]);
+  }, []);
+
+
+  if (isMinimized) return null;
 
   return (
     <div
       className="window-tab"
+      onMouseDown={handleFocus}
       style={{
         position: "absolute",
         left: pos.x,
         top: pos.y,
         width: size.width,
         height: size.height,
-        border: "1px solid #999",
-        borderRadius: 8,
-        background: "#fff",
-        boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-        overflow: "hidden",
+        zIndex,
       }}
     >
-      <div
-        className="window-titlebar"
-        onMouseDown={startDrag}
-        style={{
-          padding: "10px 12px",
-          background: "#f3f3f3",
-          borderBottom: "1px solid #ddd",
-          cursor: "move",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          userSelect: "none",
-          fontWeight: 700,
-        }}
-      >
-        <span>{title}</span>
-
-        {onClose && (
+      
+      <div className="window-titlebar" onMouseDown={startDrag}>
+        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {title}
+        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0, marginLeft: 8 }}>
+          
           <button
             type="button"
             onMouseDown={(e) => e.stopPropagation()}
-            onClick={onClose}
-            style={{
-              border: "1px solid #ccc",
-              background: "#fff",
-              borderRadius: 6,
-              padding: "4px 8px",
-              cursor: "pointer",
-            }}
+            onClick={() => onMinimize?.()}
+            title="Minimize"
+            aria-label="Minimize"
           >
-            Close
+            _
           </button>
-        )}
+
+          
+          <button
+            type="button"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={toggleMaximize}
+            title={isMaximized ? "Restore" : "Maximize"}
+            aria-label={isMaximized ? "Restore" : "Maximize"}
+          >
+            {isMaximized ? "❐" : "□"}
+          </button>
+
+          
+          <button
+            type="button"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={onClose ?? undefined}
+            title="Close"
+            aria-label="Close"
+            style={{ opacity: onClose ? 1 : 0.4, cursor: onClose ? "pointer" : "default" }}
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
+      
       <div
         className="window-content"
         onMouseDown={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
-        style={{
-          position: "relative",
-          padding: 12,
-          height: "calc(100% - 48px)",
-          boxSizing: "border-box",
-          overflow: "auto",
-        }}
+        style={{ position: "relative", height: "calc(100% - 36px)", boxSizing: "border-box", overflow: "auto" }}
       >
         {children}
       </div>
 
-      <div
-        onMouseDown={startResize}
-        style={{
-          position: "absolute",
-          right: 0,
-          bottom: 0,
-          width: 16,
-          height: 16,
-          cursor: "nwse-resize",
-          background: "linear-gradient(135deg, transparent 50%, #999 50%)",
-        }}
-      />
+      
+      {!isMaximized && (
+        <div
+          onMouseDown={startResize}
+          style={{
+            position: "absolute", right: 0, bottom: 0,
+            width: 16, height: 16, cursor: "nwse-resize",
+            background: "linear-gradient(135deg, transparent 50%, #808080 50%)",
+            zIndex: 10,
+          }}
+        />
+      )}
     </div>
   );
 }
