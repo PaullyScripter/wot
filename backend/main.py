@@ -35,7 +35,7 @@ app.add_middleware(
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "https://weaveourtapestry.netlify.app",
-        "https://fluffy-taiyaki-7bc63d.netlify.app",
+        "https://weaveourtapestrydev.netlify.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
