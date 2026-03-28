@@ -18,8 +18,7 @@ const HELP_TEXT = (
   <p>
     If you have problems logging in, please contact the developers at:
     <ul style={{ transform: "translateX(-20px)" }}> 
-      <li>bnguyen8023@sdsu.edu</li>
-      <li>dtran8023@sdsu.edu</li>
+      <li>weaveourtapestry@outlook.com</li>
       <li><a href="https://github.com/PaullyScripter/weave-our-tapestry">Our repository</a></li>
     </ul>
   </p>
