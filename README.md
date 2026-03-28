@@ -1,6 +1,6 @@
 # Weave Our Tapestry
 
-Weave our tapestry serves as a platform for any users to post a specific story, myth, legend, epic, etc that ties to a culture of a nation, as well as informatively and educationally explore other cultures' stories.
+Weave Our Tapestry is a platform where users can share stories, myths, legends, and epics connected to different cultures, while also exploring and learning about traditions from around the world.
 
 > [!WARNING]
 > WOT is still underdevelopment so in this readme you will only be able to view our progress.
@@ -52,7 +52,7 @@ npm run dev
 
 ## Links
 
-- [Frontend](https://weaveourtapestry.netlify.app/)
+- [Frontend](https://weaveourtapestrydev.netlify.app)
 - [Backend](https://weave-our-tapestry.onrender.com/)
 - [API Docs](https://weave-our-tapestry.onrender.com/docs)
 - [UI Prototype](https://www.figma.com/design/6eNdOs9eR4xgMxLMHayxBq/WOT?node-id=0-1&t=GlQmHQXrR2i0VWxH-1)
