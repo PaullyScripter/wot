@@ -13,6 +13,19 @@ type Mode = "login" | "register";
 
 const ff = "'MS Sans Serif', Tahoma, Geneva, Arial, sans-serif";
 
+const HELP_TEXT = (
+<>
+  <p>
+    If you have problems logging in, please contact the developers at:
+    <ul style={{ transform: "translateX(-20px)" }}> 
+      <li>bnguyen8023@sdsu.edu</li>
+      <li>dtran8023@sdsu.edu</li>
+      <li><a href="https://github.com/PaullyScripter/weave-our-tapestry">Our repository</a></li>
+    </ul>
+  </p>
+</>
+);
+
 function Field({ label, type, value, onChange }: { label: string; type: string; value: string; onChange: (v: string) => void }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
@@ -31,6 +44,61 @@ function Field({ label, type, value, onChange }: { label: string; type: string; 
   );
 }
 
+function HelpDialog({ onClose }: { onClose: () => void }) {
+  return (
+    <div style={{
+      position: "absolute", inset: 0, zIndex: 100,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(0,0,0,0.15)",
+    }}>
+      <div style={{
+        background: "#c0c0c0",
+        border: "2px solid", borderColor: "#fff #808080 #808080 #fff",
+        boxShadow: "2px 2px 0 #000",
+        width: 280, fontFamily: ff, fontSize: 11,
+      }}>
+        <div style={{
+          background: "linear-gradient(to right, #000080, #1084d0)",
+          color: "white", fontWeight: "bold", fontSize: 11,
+          padding: "3px 6px", display: "flex", justifyContent: "space-between", alignItems: "center",
+        }}>
+          <span>Help</span>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              width: 16, height: 14, fontFamily: ff, fontSize: 9, fontWeight: "bold",
+              background: "#c0c0c0", color: "#000",
+              border: "1px solid", borderColor: "#fff #808080 #808080 #fff",
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              padding: 0, boxShadow: "none",
+            }}
+          >✕</button>
+        </div>
+        <div style={{ padding: "16px 14px", display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <span style={{ fontSize: 28, flexShrink: 0 }}>❓</span>
+            <p style={{ margin: 0, lineHeight: 1.6, color: "#111" }}>{HELP_TEXT}</p>
+          </div>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                fontFamily: ff, fontSize: 11, padding: "3px 24px",
+                background: "#c0c0c0", border: "2px solid",
+                borderColor: "#fff #808080 #808080 #fff", cursor: "pointer",
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function LoginWindow({ onLoginSuccess }: Props) {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -38,12 +106,13 @@ export function LoginWindow({ onLoginSuccess }: Props) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   async function handleSignIn() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -64,7 +133,7 @@ export function LoginWindow({ onLoginSuccess }: Props) {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/auth/register`, {
+      const res = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
@@ -84,7 +153,10 @@ export function LoginWindow({ onLoginSuccess }: Props) {
   const isSuccess = error.startsWith("Registered");
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#c0c0c0", fontFamily: ff, fontSize: 11 }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#c0c0c0", fontFamily: ff, fontSize: 11, position: "relative" }}>
+
+      {showHelp && <HelpDialog onClose={() => setShowHelp(false)} />}
+
       <div style={{ background: "#000080", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 16px", gap: 14, flexShrink: 0 }}>
         <WotIcon size={56} />
         <div>
@@ -137,16 +209,19 @@ export function LoginWindow({ onLoginSuccess }: Props) {
         <div style={{ borderTop: "1px solid #808080", margin: "12px 0 8px" }} />
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-          <div style={{ display: "flex", gap: 18 }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-              <span style={{ fontSize: 22 }}>❓</span>
-              <span style={{ fontFamily: ff, fontSize: 10 }}>Help</span>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-              <span style={{ fontSize: 22 }}>🔧</span>
-              <span style={{ fontFamily: ff, fontSize: 10 }}>Setup</span>
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowHelp(true)}
+            style={{
+              display: "flex", flexDirection: "column", alignItems: "center",
+              gap: 2, background: "transparent", border: "none", boxShadow: "none",
+              cursor: "pointer", padding: 0,
+            }}
+          >
+            <span style={{ fontSize: 22 }}>❓</span>
+            <span style={{ fontFamily: ff, fontSize: 10 }}>Help</span>
+          </button>
+
           <button
             type="button"
             onClick={mode === "login" ? handleSignIn : handleRegister}
@@ -157,7 +232,7 @@ export function LoginWindow({ onLoginSuccess }: Props) {
               cursor: loading ? "default" : "pointer", opacity: loading ? 0.5 : 1, padding: 0,
             }}
           >
-            <span style={{ fontSize: 26 }}>🏃</span>
+            <span style={{ fontSize: 26 }}>📖</span>
             <span style={{ fontFamily: ff, fontSize: 11, fontWeight: "bold" }}>
               {loading ? "..." : mode === "login" ? "Sign In" : "Register"}
             </span>
