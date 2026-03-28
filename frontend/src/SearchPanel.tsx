@@ -91,7 +91,7 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
 
   return (
     <div>
-      {/* Search bar */}
+      
       <input
         type="text"
         value={query}
@@ -106,7 +106,7 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
       )}
       {error && <div style={{ color: "red", marginBottom: 10 }}>{error}</div>}
 
-      {/* Results */}
+      
       {!loading && !error && results.map((r) => (
         <div
           key={r.id}
@@ -119,7 +119,7 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
             boxShadow: "inset 1px 1px 0 #fff, inset -1px -1px 0 #808080, 0 1px 3px rgba(0,0,0,0.15)",
           }}
         >
-          {/* Left column — meta */}
+          
           <div style={{
             minWidth: 210,
             maxWidth: 240,
@@ -171,7 +171,7 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
             </div>
           </div>
 
-          {/* Right column — excerpt */}
+          
           <div style={{
             flex: 1,
             padding: "10px 14px",
@@ -189,7 +189,7 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
         </div>
       ))}
 
-      {/* Empty state */}
+      
       {!loading && !error && query.trim() && results.length === 0 && (
         <div style={{
           fontFamily: "'Courier Prime', monospace",
