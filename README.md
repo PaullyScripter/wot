@@ -52,7 +52,7 @@ npm run dev
 
 ## Links
 
-- [Frontend](https://weaveourtapestry.netlify.app/)
+- [Frontend](https://weaveourtapestrydev.netlify.app)
 - [Backend](https://weave-our-tapestry.onrender.com/)
 - [API Docs](https://weave-our-tapestry.onrender.com/docs)
 - [UI Prototype](https://www.figma.com/design/6eNdOs9eR4xgMxLMHayxBq/WOT?node-id=0-1&t=GlQmHQXrR2i0VWxH-1)
