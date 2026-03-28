@@ -6,7 +6,9 @@ from sqlalchemy.orm import Session
 
 from ..database.model import User
 
-PEPPER = os.getenv("PEPPER","")
+PEPPER = os.getenv("PEPPER")
+if not PEPPER:
+    raise RuntimeError("Set your PEPPER env.")
 
 #get salt
 def generate_salt() -> str:
