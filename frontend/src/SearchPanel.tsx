@@ -3,9 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 type Story = {
   id: number;
   title: string;
-  culture: string;
+  culture?: string | null;
   text: string;
   views: number;
+  author_name?: string | null;
 };
 
 type SearchPanelProps = {
@@ -17,7 +18,7 @@ const API_BASE =
 
 function formatViews(n: number): string {
   if (n >= 1000) return `${Math.floor(n / 1000)}k+`;
-  return String(n);
+  return String(n ?? 0);
 }
 
 export function SearchPanel({ onOpenStory }: SearchPanelProps) {
@@ -38,7 +39,7 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
         }
 
         const data: Story[] = await response.json();
-        setStories(data);
+        setStories(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error(err);
         setError("Failed to load stories.");
@@ -55,7 +56,12 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
     if (!q) return [];
 
     return stories.filter((story) =>
-      [story.title, story.culture, story.text]
+      [
+        story.title ?? "",
+        story.culture ?? "",
+        story.text ?? "",
+        story.author_name ?? "",
+      ]
         .join(" ")
         .toLowerCase()
         .includes(q)
@@ -80,7 +86,7 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
 
       setStories((prev) =>
         prev.map((s) =>
-          s.id === storyId ? { ...s, views: s.views + 1 } : s
+          s.id === storyId ? { ...s, views: (s.views ?? 0) + 1 } : s
         )
       );
     } catch (err) {
@@ -91,112 +97,149 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
 
   return (
     <div>
-      
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search stories..."
+        placeholder="Search stories by title, culture, text, or author..."
       />
 
       {loading && (
-        <div style={{ fontFamily: "'Courier Prime', monospace", padding: "8px 0", color: "#444" }}>
+        <div
+          style={{
+            fontFamily: "'Courier Prime', monospace",
+            padding: "8px 0",
+            color: "#444",
+          }}
+        >
           Loading stories...
         </div>
       )}
+
       {error && <div style={{ color: "red", marginBottom: 10 }}>{error}</div>}
 
-      
-      {!loading && !error && results.map((r) => (
+      {!loading &&
+        !error &&
+        results.map((r) => (
+          <div
+            key={r.id}
+            style={{
+              border: "1px solid #aaa",
+              marginBottom: 10,
+              background: "#e8e8e8",
+              display: "flex",
+              gap: 0,
+              boxShadow:
+                "inset 1px 1px 0 #fff, inset -1px -1px 0 #808080, 0 1px 3px rgba(0,0,0,0.15)",
+            }}
+          >
+            <div
+              style={{
+                minWidth: 210,
+                maxWidth: 240,
+                padding: "10px 14px",
+                borderRight: "2px solid #999",
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "'IM Fell English', Georgia, serif",
+                  fontSize: 20,
+                  fontWeight: 700,
+                  textDecoration: "underline",
+                  display: "block",
+                  marginBottom: 4,
+                  lineHeight: 1.2,
+                }}
+              >
+                {r.title}
+              </span>
+
+              <div
+                style={{
+                  fontFamily: "'Courier Prime', monospace",
+                  fontSize: 13,
+                  color: "#222",
+                }}
+              >
+                Culture:{" "}
+                <span style={{ textDecoration: "underline" }}>
+                  {r.culture || "Unknown"}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  fontFamily: "'Courier Prime', monospace",
+                  fontSize: 13,
+                  color: "#222",
+                }}
+              >
+                Author:{" "}
+                <span style={{ textDecoration: "underline" }}>
+                  {r.author_name || "Unknown"}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  marginTop: 10,
+                  fontFamily: "'Courier Prime', monospace",
+                  fontSize: 13,
+                  color: "#555",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                <span>{formatViews(r.views)}</span>
+                <span title="Views">👁</span>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleReadStory(r.id);
+                  }}
+                  style={{ marginLeft: "auto" }}
+                >
+                  Read Story
+                </button>
+              </div>
+            </div>
+
+            <div
+              style={{
+                flex: 1,
+                padding: "10px 14px",
+                fontFamily: "'IM Fell English', Georgia, serif",
+                fontSize: 14,
+                lineHeight: 1.65,
+                color: "#111",
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitLineClamp: 8,
+                WebkitBoxOrient: "vertical",
+              }}
+            >
+              {r.text}
+            </div>
+          </div>
+        ))}
+
+      {!loading && !error && query.trim() && results.length === 0 && (
         <div
-          key={r.id}
           style={{
-            border: "1px solid #aaa",
-            marginBottom: 10,
-            background: "#e8e8e8",
-            display: "flex",
-            gap: 0,
-            boxShadow: "inset 1px 1px 0 #fff, inset -1px -1px 0 #808080, 0 1px 3px rgba(0,0,0,0.15)",
+            fontFamily: "'Courier Prime', monospace",
+            fontSize: 13,
+            color: "#555",
+            padding: "10px 0",
           }}
         >
-          
-          <div style={{
-            minWidth: 210,
-            maxWidth: 240,
-            padding: "10px 14px",
-            borderRight: "2px solid #999",
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-          }}>
-            <span style={{
-              fontFamily: "'IM Fell English', Georgia, serif",
-              fontSize: 20,
-              fontWeight: 700,
-              textDecoration: "underline",
-              display: "block",
-              marginBottom: 4,
-              lineHeight: 1.2,
-            }}>
-              {r.title}
-            </span>
-
-            <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 13, color: "#222" }}>
-              Culture: <span style={{ textDecoration: "underline", cursor: "pointer" }}>{r.culture}</span>
-            </div>
-
-            <div style={{
-              marginTop: 10,
-              fontFamily: "'Courier Prime', monospace",
-              fontSize: 13,
-              color: "#555",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}>
-              <span>{formatViews(r.views)}</span>
-              <span title="Views">👁</span>
-              <button
-                type="button"
-                onMouseDown={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleReadStory(r.id);
-                }}
-                style={{ marginLeft: "auto" }}
-              >
-                Read Story
-              </button>
-            </div>
-          </div>
-
-          
-          <div style={{
-            flex: 1,
-            padding: "10px 14px",
-            fontFamily: "'IM Fell English', Georgia, serif",
-            fontSize: 14,
-            lineHeight: 1.65,
-            color: "#111",
-            overflow: "hidden",
-            display: "-webkit-box",
-            WebkitLineClamp: 8,
-            WebkitBoxOrient: "vertical",
-          } as React.CSSProperties}>
-            {r.text}
-          </div>
-        </div>
-      ))}
-
-      
-      {!loading && !error && query.trim() && results.length === 0 && (
-        <div style={{
-          fontFamily: "'Courier Prime', monospace",
-          fontSize: 13,
-          color: "#555",
-          padding: "10px 0",
-        }}>
           No stories found for "{query}".
         </div>
       )}

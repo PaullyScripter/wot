@@ -8,7 +8,8 @@ File Description: Defines what a “Story” looks like in the database - bluepr
 """
 
 
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy.orm import relationship
 from .db import Base
 from pydantic import BaseModel  
 
@@ -16,11 +17,19 @@ class Story(Base):
     __tablename__ = "stories"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
     title = Column(String, nullable=False)
     culture = Column(String, nullable=True)
+    country = Column(String, nullable=True)
+    year = Column(Integer, nullable=True)
+    category = Column(String, nullable=True)
+
     text = Column(Text, nullable=False)
-    views = Column(Integer, default = 0, nullable = False)
-    like_count = Column(Integer, default=0) 
+    views = Column(Integer, default=0, nullable=False)
+    like_count = Column(Integer, default=0)
+
+    user = relationship("User")
 
 
 class User(Base):
