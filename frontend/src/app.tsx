@@ -388,6 +388,9 @@ export default function App() {
               <div style={{ fontFamily: ff, fontSize: 11, color: "#444" }}>
                 Culture: <span style={{ textDecoration: "underline" }}>{story.culture}</span>
               </div>
+              <div style={{ fontFamily: ff, fontSize: 11, color: "#444" }}>
+                Author: <span style={{ textDecoration: "underline" }}>{story.author_name}</span>
+              </div>
             </div>
             <div style={{ fontFamily: ff, fontSize: 11, color: "#333", display: "flex", alignItems: "center", gap: 6 }}>
               <span>{formatViews(story.views)}</span><span>👁</span>
