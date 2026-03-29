@@ -14,9 +14,13 @@ const ff = "'MS Sans Serif', Tahoma, Geneva, Arial, sans-serif";
 type Story = {
   id: number;
   title: string;
-  culture: string;
+  culture?: string | null;
+  country?: string | null;
+  year?: number | null;
+  category?: string | null;
   text: string;
   views: number;
+  author_name?: string | null;
 };
 
 type StoryWin = {
@@ -383,6 +387,9 @@ export default function App() {
               <h2 style={{ margin: "0 0 4px 0", fontFamily: ff, fontSize: 13, fontWeight: "bold" }}>{story.title}</h2>
               <div style={{ fontFamily: ff, fontSize: 11, color: "#444" }}>
                 Culture: <span style={{ textDecoration: "underline" }}>{story.culture}</span>
+              </div>
+              <div style={{ fontFamily: ff, fontSize: 11, color: "#444" }}>
+                Author: <span style={{ textDecoration: "underline" }}>{story.author_name}</span>
               </div>
             </div>
             <div style={{ fontFamily: ff, fontSize: 11, color: "#333", display: "flex", alignItems: "center", gap: 6 }}>
