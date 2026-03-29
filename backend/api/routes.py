@@ -25,6 +25,7 @@ from ..database.model import  UserLogin, UserRegister
 from ..features.engagement import increment_story_views
 from ..features.stories import list_all_stories, get_story_by_id, create_new_story
 from ..features.auth import authenticate_user, register_user
+from ..database.model import User
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -38,8 +39,12 @@ def get_db():
 
 #API contract
 class StoryCreate(BaseModel):
+    user_id: int
     title: str
     culture: Optional[str] = None
+    country: Optional[str] = None
+    year: Optional[int] = None
+    category: Optional[str] = None
     text: str
 
 class StoryOut(BaseModel):
@@ -51,6 +56,7 @@ class StoryOut(BaseModel):
     category: Optional[str] = None
     text: str
     views: int
+    author_name: Optional[str] = None 
 
     class Config:
         from_attributes = True
@@ -146,6 +152,11 @@ def search_stories(
 
 @router.post("/stories", response_model=StoryOut)
 def create_story(payload: StoryCreate, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == payload.user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid user")
+
     return create_new_story(db, payload)
 
 @router.post("/stories/{story_id}/views")
