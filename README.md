@@ -57,6 +57,13 @@ npm run dev
 - [API Docs](https://weave-our-tapestry.onrender.com/docs)
 - [UI Prototype](https://www.figma.com/design/6eNdOs9eR4xgMxLMHayxBq/WOT?node-id=0-1&t=GlQmHQXrR2i0VWxH-1)
 
+## References
+
+- Windows 98
+- Wikipedia
+- AO3
+- Reddit
+
 ## Authors
 
 - [@DTue](https://github.com/DTue)
@@ -64,6 +71,9 @@ npm run dev
 - [@tituswzp](https://github.com/tituswzp)
 - [@PaullyScripter](https://github.com/PaullyScripter)
 
+## Contacts
+
+- weaveourtapestry@outlook.com
 
 ## License
 
