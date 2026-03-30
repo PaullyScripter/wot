@@ -170,7 +170,7 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
                   {r.culture || "Unknown"}
                 </span>
               </div>
-
+              
               <div
                 style={{
                   fontFamily: "'Courier Prime', monospace",
