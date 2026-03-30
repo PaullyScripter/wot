@@ -224,7 +224,8 @@ function HometownContent() {
             <div style={{ width: 24, height: 24, flexShrink: 0, background: ["#c04000", "#808080", "#a06030"][i], color: "white", fontWeight: "bold", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #000" }}>{i + 1}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: "bold", color: "#000080", fontSize: 12, marginBottom: 2 }}>{story.title}</div>
-              <div style={{ color: "#555", fontSize: 10, marginBottom: 4 }}>Culture: <span style={{ color: "#0000cc", textDecoration: "underline" }}>{story.culture}</span></div>
+              <div style={{ color: "#555", fontSize: 10, marginBottom: 2 }}>Culture: <span style={{ color: "#0000cc", textDecoration: "underline" }}>{story.culture}</span></div>
+              <div style={{ color: "#555", fontSize: 10, marginBottom: 4 }}>Author: <span style={{ color: "#0000cc", textDecoration: "underline" }}>{story.author_name}</span></div>
               <div style={{ fontSize: 11, color: "#333", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}>{story.text}</div>
               <div style={{ marginTop: 4, fontSize: 10, color: "#666", display: "flex", gap: 6 }}>
                 <span>👁 {formatViews(story.views)} views</span>
