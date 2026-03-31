@@ -9,7 +9,7 @@ Weave Our Tapestry is a platform where users can share stories, myths, legends, 
 
 First you must clone our repo.
 ```
-git clone https://github.com/PaullyScripter/weave-our-tapestry.git
+git clone https://github.com/PaullyScripter/wot.git
 ```
 ### To set up the backend:
 
