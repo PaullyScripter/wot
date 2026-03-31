@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Window } from "./Window";
 import { SearchPanel } from "./SearchPanel";
 import { TaskBar } from "./TaskBar";
@@ -244,13 +244,156 @@ function HometownContent() {
   );
 }
 
+const AD_GRADIENTS = [
+  "linear-gradient(180deg, #8b0000 0%, #ff6600 50%, #ffd700 100%)",
+  "linear-gradient(180deg, #00008b 0%, #0080ff 50%, #00e5ff 100%)",
+  "linear-gradient(180deg, #1a0033 0%, #7b00d4 50%, #ff00cc 100%)",
+  "linear-gradient(180deg, #003300 0%, #00aa44 50%, #ccff00 100%)",
+  "linear-gradient(180deg, #4a0000 0%, #cc2200 40%, #ff9900 70%, #ffee00 100%)",
+  "linear-gradient(180deg, #000033 0%, #003399 40%, #0099ff 70%, #00ffcc 100%)",
+];
+
+type AdData = {
+  type: "most_viewed" | "random";
+  story: Story;
+  gradient: string;
+};
+
+function AdPopup({ ad, onClose, zIndex, onFocus }: { ad: AdData; onClose: () => void; zIndex: number; onFocus: () => void }) {
+  const isBig = ad.type === "most_viewed";
+  const titleFont = "'IM Fell English', 'Times New Roman', Georgia, serif";
+
+  return (
+    <Window
+      title="Daily News"
+      initialX={Math.floor(window.innerWidth * 0.65)}
+      initialY={60}
+      initialWidth={220}
+      initialHeight={isBig ? 480 : 400}
+      onClose={onClose}
+      zIndex={zIndex}
+      onFocus={onFocus}
+    >
+      <div style={{
+        background: ad.gradient,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 18,
+        padding: "20px 16px",
+        textAlign: "center",
+        boxSizing: "border-box",
+      }}>
+        {isBig ? (
+          <>
+            <div style={{ fontFamily: titleFont, fontSize: 22, fontWeight: "bold", fontStyle: "italic", color: "#fff", textShadow: "2px 2px 4px rgba(0,0,0,0.7)", lineHeight: 1.2 }}>
+              Today's HOTTEST POST!!!!
+            </div>
+            <div style={{ fontFamily: titleFont, fontSize: 17, fontStyle: "italic", color: "#fff", textShadow: "1px 1px 3px rgba(0,0,0,0.6)", lineHeight: 1.3 }}>
+              Most viewed<br />
+              <span style={{ fontSize: 19, fontWeight: "bold", textDecoration: "underline" }}>
+                {ad.story.title}
+              </span>
+            </div>
+            {ad.story.culture && (
+              <div style={{ fontFamily: titleFont, fontSize: 13, fontStyle: "italic", color: "rgba(255,255,255,0.85)", textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}>
+                Culture: {ad.story.culture}
+              </div>
+            )}
+            <div style={{ fontFamily: titleFont, fontSize: 16, fontStyle: "italic", color: "#fff", textShadow: "1px 1px 3px rgba(0,0,0,0.6)" }}>
+              👁 {formatViews(ad.story.views)} views
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontFamily: titleFont, fontSize: 18, fontWeight: "bold", fontStyle: "italic", color: "#fff", textShadow: "2px 2px 4px rgba(0,0,0,0.7)", lineHeight: 1.2 }}>
+              Discover a Story!
+            </div>
+            <div style={{ fontFamily: titleFont, fontSize: 17, fontStyle: "italic", color: "#fff", textShadow: "1px 1px 3px rgba(0,0,0,0.6)", lineHeight: 1.3 }}>
+              <span style={{ fontSize: 19, fontWeight: "bold", textDecoration: "underline" }}>
+                {ad.story.title}
+              </span>
+            </div>
+            {ad.story.culture && (
+              <div style={{ fontFamily: titleFont, fontSize: 13, fontStyle: "italic", color: "rgba(255,255,255,0.85)", textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}>
+                {ad.story.culture}
+              </div>
+            )}
+            {ad.story.author_name && (
+              <div style={{ fontFamily: titleFont, fontSize: 12, fontStyle: "italic", color: "rgba(255,255,255,0.75)" }}>
+                by {ad.story.author_name}
+              </div>
+            )}
+          </>
+        )}
+
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.4)", width: "80%", paddingTop: 14, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+          <div style={{ fontFamily: titleFont, fontSize: 18, fontStyle: "italic", fontWeight: "bold", color: "#fff", textShadow: "1px 1px 3px rgba(0,0,0,0.6)", lineHeight: 1.3 }}>
+            Want to be featured like this?
+          </div>
+          <div style={{ fontFamily: titleFont, fontSize: 14, fontStyle: "italic", color: "rgba(255,255,255,0.9)", textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}>
+            share a story now!
+          </div>
+        </div>
+      </div>
+    </Window>
+  );
+}
+
+
 export default function App() {
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(() => loadSession());
   const [storyWindows, setStoryWindows] = useState<StoryWin[]>([]);
   const [zOrder, setZOrder] = useState<string[]>([]);
+  const [ad, setAd] = useState<AdData | null>(null);
+  const [adKey, setAdKey] = useState(0);
+  const adVisibleRef = useRef(false);
 
   const bringToFront = useCallback((id: string) => {
     setZOrder((prev) => prev[prev.length - 1] === id ? prev : [...prev.filter((w) => w !== id), id]);
+  }, []);
+
+  // Ad popup: fires every 5–10 minutes
+  useEffect(() => {
+    async function showAd() {
+      // Don't stack ads — skip if one is already open
+      if (adVisibleRef.current) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/stories`);
+        if (!res.ok) return;
+        const stories: Story[] = await res.json();
+        if (!stories.length) return;
+
+        const gradient = AD_GRADIENTS[Math.floor(Math.random() * AD_GRADIENTS.length)];
+        const useMostViewed = Math.random() < 0.5;
+
+        let story: Story;
+        if (useMostViewed) {
+          story = stories.reduce((best, s) => s.views > best.views ? s : best, stories[0]);
+        } else {
+          story = stories[Math.floor(Math.random() * stories.length)];
+        }
+
+        setAd({ type: useMostViewed ? "most_viewed" : "random", story, gradient });
+        setAdKey((k) => k + 1);
+        adVisibleRef.current = true;
+        setZOrder((prev) => [...prev.filter((w) => w !== "ad"), "ad"]);
+      } catch { /* silent */ }
+    }
+
+    const initialDelay = 8000;
+    const firstTimer = setTimeout(() => {
+      showAd();
+      function scheduleNext() {
+        const ms = (5 + Math.random() * 5) * 60 * 1000;
+        setTimeout(() => { showAd(); scheduleNext(); }, ms);
+      }
+      scheduleNext();
+    }, initialDelay);
+
+    return () => clearTimeout(firstTimer);
   }, []);
 
   const zIndexOf = (id: string) => { const i = zOrder.indexOf(id); return i === -1 ? 10 : 10 + i; };
@@ -406,6 +549,16 @@ export default function App() {
           </div>
         </Window>
       ))}
+
+      {ad && (
+        <AdPopup
+          key={adKey}
+          ad={ad}
+          onClose={() => { adVisibleRef.current = false; setAd(null); setZOrder((prev) => prev.filter((w) => w !== "ad")); }}
+          zIndex={zIndexOf("ad")}
+          onFocus={() => bringToFront("ad")}
+        />
+      )}
 
       <TaskBar windows={taskWindows} activeId={activeId} onFocusWindow={handleTaskbarFocus} isLoggedIn={!!currentUser} username={currentUser?.username} />
     </div>
