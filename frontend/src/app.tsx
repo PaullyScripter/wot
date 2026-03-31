@@ -264,9 +264,19 @@ export default function App() {
 
   const winMap: Record<string, { open: boolean; minimized: boolean; openWin: () => void; closeWin: () => void; minimizeWin: () => void }> = { search, hometown, login, account, about };
 
+  const [pendingAccountOpen, setPendingAccountOpen] = useState(false);
+
+  useEffect(() => {
+    if (pendingAccountOpen && currentUser) {
+      account.openWin();
+      setPendingAccountOpen(false);
+    }
+  }, [pendingAccountOpen, currentUser]);
+
   function handleLoginSuccess(user: SessionUser) {
     setCurrentUser(user);
     login.closeWin();
+    setPendingAccountOpen(true);
   }
 
   function handleLogout() {
@@ -307,7 +317,7 @@ export default function App() {
 
   const taskWindows: TaskWindow[] = [
     ...(login.open ? [{ id: "login", title: "My Account", icon: "🖥️", isMinimized: login.minimized }] : []),
-    ...(account.open ? [{ id: "account", title: "My Account", icon: "🖥️", isMinimized: account.minimized }] : []),
+    ...(account.open ? [{ id: "account", title: currentUser?.username ?? "My Account", icon: "🖥️", isMinimized: account.minimized }] : []),
     ...(about.open ? [{ id: "about", title: "WOT Online", icon: "📋", isMinimized: about.minimized }] : []),
     ...(search.open ? [{ id: "search", title: "Weave Our Tapestry", icon: "📖", isMinimized: search.minimized }] : []),
     ...(hometown.open ? [{ id: "hometown", title: "Our Hometown", icon: "🏠", isMinimized: hometown.minimized }] : []),
@@ -321,17 +331,10 @@ export default function App() {
     <div style={{ width: "100vw", height: "100vh", paddingBottom: 48, boxSizing: "border-box", position: "relative" }}>
 
       <div style={{ position: "absolute", top: 20, left: 20, display: "flex", flexDirection: "column", gap: 12, zIndex: 1 }}>
-        <DesktopIcon label="My Account" onClick={handleAccountOpen} renderIcon={() => <PcIcon />} />
+        <DesktopIcon label={currentUser ? currentUser.username : "My Account"} onClick={handleAccountOpen} renderIcon={() => <PcIcon />} />
         <DesktopIcon label="WOT" onClick={search.openWin} renderIcon={() => <WotIcon size={36} />} />
         <DesktopIcon label={"Our\nHometown"} onClick={hometown.openWin} renderIcon={() => <HometownIcon />} />
       </div>
-
-      {currentUser && (
-        <div style={{ position: "absolute", top: 16, right: 16, zIndex: 1, fontFamily: ff, fontSize: 11, color: "#fff", textShadow: "1px 1px 1px #000", display: "flex", alignItems: "center", gap: 6 }}>
-          <WotIcon size={14} />
-          Signed in as <strong>{currentUser.username}</strong>
-        </div>
-      )}
 
       {login.open && (
         <Window title="My Account" initialX={cx - 175} initialY={cy - 220} initialWidth={350} initialHeight={420}
@@ -343,7 +346,7 @@ export default function App() {
       )}
 
       {account.open && currentUser && (
-        <Window title="My Account" initialX={cx - 175} initialY={cy - 150} initialWidth={340} initialHeight={260}
+        <Window key={`account-${currentUser.username}`} title={currentUser.username} initialX={cx - 175} initialY={cy - 150} initialWidth={340} initialHeight={260}
           onClose={account.closeWin} onMinimize={account.minimizeWin} isMinimized={account.minimized}
           zIndex={zIndexOf("account")} onFocus={() => bringToFront("account")}
         >
@@ -404,7 +407,7 @@ export default function App() {
         </Window>
       ))}
 
-      <TaskBar windows={taskWindows} activeId={activeId} onFocusWindow={handleTaskbarFocus} isLoggedIn={!!currentUser} />
+      <TaskBar windows={taskWindows} activeId={activeId} onFocusWindow={handleTaskbarFocus} isLoggedIn={!!currentUser} username={currentUser?.username} />
     </div>
   );
 }

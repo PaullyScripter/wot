@@ -14,6 +14,7 @@ type TaskBarProps = {
   activeId?: string;
   onFocusWindow: (id: string) => void;
   isLoggedIn?: boolean;
+  username?: string;
 };
 
 const ff = "'MS Sans Serif', Tahoma, Geneva, Arial, sans-serif";
@@ -59,7 +60,7 @@ function MenuSep() {
   return <div style={{ height: 1, background: "#808080", margin: "2px 4px", borderTop: "1px solid #fff" }} />;
 }
 
-export function TaskBar({ windows, activeId, onFocusWindow, isLoggedIn }: TaskBarProps) {
+export function TaskBar({ windows, activeId, onFocusWindow, isLoggedIn, username }: TaskBarProps) {
   const [startOpen, setStartOpen] = useState(false);
   const close = () => setStartOpen(false);
   const focus = (id: string) => { onFocusWindow(id); close(); };
@@ -97,7 +98,7 @@ export function TaskBar({ windows, activeId, onFocusWindow, isLoggedIn }: TaskBa
             <MenuSep />
             <MenuItem icon={<span style={{ fontSize: 15 }}>🔍</span>} label="Weave Our Tapestry" onClick={() => focus("search")} />
             <MenuItem icon={<span style={{ fontSize: 15 }}>🏠</span>} label="Our Hometown" onClick={() => focus("hometown")} />
-            <MenuItem icon={<span style={{ fontSize: 15 }}>🖥️</span>} label="My Account" onClick={() => focus(isLoggedIn ? "account" : "login")} />
+            <MenuItem icon={<span style={{ fontSize: 15 }}>🖥️</span>} label={isLoggedIn && username ? username : "My Account"} onClick={() => focus(isLoggedIn ? "account" : "login")} />
             <MenuSep />
             <MenuItem icon={<span style={{ fontSize: 15 }}>🔌</span>} label="Shut Down..." onClick={close} />
           </div>
