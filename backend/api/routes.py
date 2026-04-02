@@ -13,53 +13,30 @@ Objectives:
 - Add sorting parameters
 """
 
-from fastapi import APIRouter, Depends, HTTPException 
+from fastapi import APIRouter, Depends, HTTPException
+
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, func
-from pydantic import BaseModel
-from typing import Optional, List
+from typing import List
 
+from ..database.db import get_db
+from ..database.model import User, Comment
 
-from ..database.db import SessionLocal
-from ..database.model import  UserLogin, UserRegister
+from .schemas import (
+    UserRegister,
+    UserLogin,
+    StoryOut,
+    StoryCreate,
+    CommentCreateRequest,
+    CommentOut, 
+)
+
 from ..features.engagement import increment_story_views
 from ..features.stories import list_all_stories, get_story_by_id, create_new_story
 from ..features.auth import authenticate_user, register_user
-from ..database.model import User
+from ..features.comments import make_a_comment
+
 
 router = APIRouter(prefix="/api", tags=["api"])
-
-# DB dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-#API contract
-class StoryCreate(BaseModel):
-    user_id: int
-    title: str
-    culture: Optional[str] = None
-    country: Optional[str] = None
-    year: Optional[int] = None
-    category: Optional[str] = None
-    text: str
-
-class StoryOut(BaseModel):
-    id: int
-    title: str
-    culture: Optional[str] = None
-    country: Optional[str] = None
-    year: Optional[int] = None
-    category: Optional[str] = None
-    text: str
-    views: int
-    author_name: Optional[str] = None 
-
-    class Config:
-        from_attributes = True
 
 """ 
 TO BE REPLACED
@@ -88,6 +65,10 @@ def get_story(story_id: int, db: Session = Depends(get_db)):
     if story is None:
         raise HTTPException(status_code = 404, detail = "Story not found")
     return story
+
+@router.get("/stories/{story_id}/comments", response_model=List[CommentOut])
+def get_comments(story_id: int, db:Session = Depends(get_db)):
+    return db.query(Comment).filter(Comment.storyid == story_id).all()
 
 """
 FIXME 
@@ -184,6 +165,27 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid information")
         
     return {"message": "Login Sucessfully!", "user_id": user.id} 
+
+@router.post("/stories/{story_id}/comments")
+def create_comment(
+    story_id: int,
+    payload: CommentCreateRequest,
+    db: Session = Depends(get_db),
+
+):
+    current_user, error = authenticate_user(db=db, 
+                                          email=payload.email,
+                                          password=payload.password)
+    if error:
+        raise HTTPException(status_code=401, detail="Invalid Credentials")
+    
+    return make_a_comment(
+        db=db,
+        current_user=current_user,
+        story_id=story_id,
+        content=payload.content,
+        parent_comment_id=payload.parent_comment_id,
+    )
 
     
 

@@ -64,6 +64,15 @@ def authenticate_user(db: Session, email: str, password: str):
     
     return user, None
 
+def get_current_user(db: Session, email: str, password: str):
+    user, error = authenticate_user(db=db, email=email, password=password)
+    
+    if error:
+        return None, error
+    
+    return user, None
+    
+
 
 
 

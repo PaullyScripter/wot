@@ -23,7 +23,7 @@ def increment_story_views(db: Session, story_id: int) -> Story | None:
 
     return story
 
-#Incrementing likes
+#Incrementing likes 
 def like_story(db: Session, story_id: int) -> Story | None:
     db.execute(
         update(Story)
