@@ -1,5 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field
+from datetime import datetime
+
 
 
 #Auth Schema
@@ -40,7 +42,9 @@ class StoryOut(BaseModel):
     text: str
     views: int
     author_name: Optional[str] = None 
-
+    like_count: int | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
     class Config:
         from_attributes = True
 

@@ -14,8 +14,8 @@ def map_story(story: Story):
         "views": story.views,
         "author_name": story.author.username if story.author else None,
         "like_count": story.like_count,
-        "created_at": story.created_at.isoformat() if story.created_at else None,
-        "updated_at": story.updated_at.isoformat() if story.updated_at else None,
+        "created_at": story.created_at.isoformat(),
+        "updated_at": story.updated_at.isoformat(),
     }
 
 def list_all_stories(db: Session):
