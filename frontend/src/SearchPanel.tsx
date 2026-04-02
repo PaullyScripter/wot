@@ -4,9 +4,15 @@ type Story = {
   id: number;
   title: string;
   culture?: string | null;
+  country?: string | null;
+  year?: number | null;
+  category?: string | null;
   text: string;
   views: number;
+  like_count?: number | null;
   author_name?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 type SearchPanelProps = {
@@ -19,6 +25,12 @@ const API_BASE =
 function formatViews(n: number): string {
   if (n >= 1000) return `${Math.floor(n / 1000)}k+`;
   return String(n ?? 0);
+}
+
+function formatDate(iso?: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
 export function SearchPanel({ onOpenStory }: SearchPanelProps) {
@@ -59,8 +71,11 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
       [
         story.title ?? "",
         story.culture ?? "",
+        story.country ?? "",
+        story.category ?? "",
         story.text ?? "",
         story.author_name ?? "",
+        String(story.year ?? ""),
       ]
         .join(" ")
         .toLowerCase()
@@ -101,7 +116,7 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search stories by title, culture, text, or author..."
+        placeholder="Search by title, author, country, culture, category, year..."
       />
 
       {loading && (
@@ -158,45 +173,50 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
                 {r.title}
               </span>
 
-              <div
-                style={{
-                  fontFamily: "'Courier Prime', monospace",
-                  fontSize: 13,
-                  color: "#222",
-                }}
-              >
-                Culture:{" "}
-                <span style={{ textDecoration: "underline" }}>
-                  {r.culture || "Unknown"}
-                </span>
-              </div>
-              
-              <div
-                style={{
-                  fontFamily: "'Courier Prime', monospace",
-                  fontSize: 13,
-                  color: "#222",
-                }}
-              >
-                Author:{" "}
-                <span style={{ textDecoration: "underline" }}>
-                  {r.author_name || "Unknown"}
-                </span>
-              </div>
+              {r.author_name && (
+                <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 12, color: "#222" }}>
+                  Uploader: <span style={{ textDecoration: "underline" }}>{r.author_name}</span>
+                </div>
+              )}
+              {r.country && (
+                <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 12, color: "#222" }}>
+                  Country: <span style={{ textDecoration: "underline" }}>{r.country}</span>
+                </div>
+              )}
+              {r.culture && (
+                <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 12, color: "#222" }}>
+                  Culture: <span style={{ textDecoration: "underline" }}>{r.culture}</span>
+                </div>
+              )}
+              {r.category && (
+                <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 12, color: "#222" }}>
+                  Category: <span style={{ textDecoration: "underline" }}>{r.category}</span>
+                </div>
+              )}
+              {r.year && (
+                <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 12, color: "#222" }}>
+                  Year: <span style={{ textDecoration: "underline" }}>{r.year}</span>
+                </div>
+              )}
+              {r.created_at && (
+                <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, color: "#666" }}>
+                  🗓 {formatDate(r.created_at)}
+                </div>
+              )}
 
               <div
                 style={{
-                  marginTop: 10,
+                  marginTop: 8,
                   fontFamily: "'Courier Prime', monospace",
-                  fontSize: 13,
+                  fontSize: 12,
                   color: "#555",
                   display: "flex",
                   alignItems: "center",
-                  gap: 6,
+                  gap: 8,
                 }}
               >
-                <span>{formatViews(r.views)}</span>
-                <span title="Views">👁</span>
+                <span>👁 {formatViews(r.views)}</span>
+                <span>❤️ {r.like_count ?? 0}</span>
                 <button
                   type="button"
                   onMouseDown={(e) => e.stopPropagation()}
@@ -207,7 +227,7 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
                   }}
                   style={{ marginLeft: "auto" }}
                 >
-                  Read Story
+                  Read
                 </button>
               </div>
             </div>

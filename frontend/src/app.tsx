@@ -20,7 +20,10 @@ type Story = {
   category?: string | null;
   text: string;
   views: number;
+  like_count?: number | null;
   author_name?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 type StoryWin = {
@@ -34,6 +37,18 @@ type StoryWin = {
 function formatViews(n: number): string {
   if (n >= 1000) return `${Math.floor(n / 1000)}k+`;
   return String(n);
+}
+
+function formatDate(iso?: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 let winCounter = 0;
@@ -303,17 +318,19 @@ function HometownContent() {
   useEffect(() => {
     fetch(`${API_BASE}/api/stories`)
       .then(async (r) => { const buf = await r.arrayBuffer(); return JSON.parse(new TextDecoder("utf-8").decode(buf)) as Story[]; })
-      .then((data) => { setTopStories([...data].sort((a, b) => b.views - a.views).slice(0, 3)); setLoading(false); })
+      .then((data) => { setTopStories([...data].sort((a, b) => b.views - a.views).slice(0, 5)); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
+
+  const medals = ["1", "2", "3", "4", "5"];
 
   return (
     <div style={{ fontFamily: ff, fontSize: 11, height: "100%", display: "flex", flexDirection: "column" }}>
       <div style={{ background: "linear-gradient(to right, #000080, #4040c0)", color: "white", padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-        <span style={{ fontSize: 20, fontWeight: "bold" }}>🏠</span>
+        <span style={{ fontSize: 20 }}>🏠</span>
         <div>
           <div style={{ fontSize: 13, fontWeight: "bold" }}>Our Hometown</div>
-          <div style={{ fontSize: 10, opacity: 0.8 }}>The most-read stories in our community</div>
+          <div style={{ fontSize: 10, opacity: 0.8 }}>Top 5 most-read stories in our community</div>
         </div>
       </div>
       <div style={{ flex: 1, overflow: "auto", background: "white" }}>
@@ -321,15 +338,27 @@ function HometownContent() {
         {!loading && topStories.length === 0 && <div style={{ padding: 16, color: "#666" }}>No stories found.</div>}
         {!loading && topStories.map((story, i) => (
           <div key={story.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px", borderBottom: "1px solid #e0e0e0", background: i === 0 ? "#fffbf0" : "white" }}>
-            <div style={{ width: 24, height: 24, flexShrink: 0, background: ["#c04000", "#808080", "#a06030"][i], color: "white", fontWeight: "bold", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #000" }}>{i + 1}</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: "bold", color: "#000080", fontSize: 12, marginBottom: 2 }}>{story.title}</div>
-              <div style={{ color: "#555", fontSize: 10, marginBottom: 2 }}>Culture: <span style={{ color: "#0000cc", textDecoration: "underline" }}>{story.culture}</span></div>
-              <div style={{ color: "#555", fontSize: 10, marginBottom: 4 }}>Author: <span style={{ color: "#0000cc", textDecoration: "underline" }}>{story.author_name}</span></div>
-              <div style={{ fontSize: 11, color: "#333", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}>{story.text}</div>
-              <div style={{ marginTop: 4, fontSize: 10, color: "#666", display: "flex", gap: 6 }}>
+            <div style={{ fontSize: 20, flexShrink: 0, lineHeight: 1 }}>{medals[i]}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: "bold", color: "#000080", fontSize: 12, marginBottom: 3 }}>{story.title}</div>
+
+              {/* Metadata row */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "2px 12px", color: "#555", fontSize: 10, marginBottom: 4 }}>
+                {story.author_name && <span> {story.author_name}</span>}
+                {story.country    && <span> {story.country}</span>}
+                {story.culture    && <span> {story.culture}</span>}
+                {story.category   && <span> {story.category}</span>}
+                {story.year       && <span> {story.year}</span>}
+              </div>
+
+              <div style={{ fontSize: 11, color: "#333", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}>{story.text}</div>
+
+              {/* Stats row */}
+              <div style={{ marginTop: 5, fontSize: 10, color: "#666", display: "flex", gap: 10, alignItems: "center" }}>
                 <span>👁 {formatViews(story.views)} views</span>
-                {i === 0 && <span style={{ color: "#c04000", fontWeight: "bold" }}>🔥 Most Read</span>}
+                <span>❤️ {story.like_count ?? 0} likes</span>
+                {story.created_at && <span>🗓 {formatDate(story.created_at)}</span>}
+                {i === 0 && <span style={{ color: "#c04000", fontWeight: "bold", marginLeft: "auto" }}>🔥 Most Read</span>}
               </div>
             </div>
           </div>
@@ -579,12 +608,13 @@ const ALL_COUNTRIES = [
   "Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador",
   "Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France",
   "Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau",
-  "Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan",
+  "Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland",
+  "Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan",
   "Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar",
   "Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia",
   "Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal",
   "Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan",
-  "Palau","Palestine","Panama","Papua New Guinea", "Palestine", "Paraguay","Peru","Philippines","Poland","Portugal","Qatar",
+  "Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar",
   "Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia",
   "Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa",
   "South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan",
@@ -697,7 +727,7 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
       <div style={{ flex: 1, overflowY: "auto", paddingRight: 2 }}>
         <div style={rowStyle}>
           <span style={labelStyle}>Title <span style={{ color: "red" }}>*</span></span>
-          <input style={inputStyle} type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="title of story" />
+          <input style={inputStyle} type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. The Legend of the Dragon" />
         </div>
         <div style={rowStyle}>
           <span style={labelStyle}>Country <span style={{ color: "red" }}>*</span></span>
@@ -712,7 +742,7 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
         </div>
         <div style={rowStyle}>
           <span style={labelStyle}>Culture</span>
-          <input style={inputStyle} type="text" value={culture} onChange={e => setCulture(e.target.value)} placeholder="culture of story" />
+          <input style={inputStyle} type="text" value={culture} onChange={e => setCulture(e.target.value)} placeholder="e.g. Norse, Aztec... (optional)" />
         </div>
         <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
@@ -738,7 +768,7 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
-          placeholder="story itself..."
+          placeholder="Write your story here... All characters, symbols, and languages are welcome ✨"
           style={{
             ...inputStyle,
             height: 160,
@@ -924,7 +954,10 @@ function MySpaceContent({ user, onOpenStory }: { user: SessionUser; onOpenStory:
                 <th style={thStyle}>Name</th>
                 <th style={thStyle}>Country</th>
                 <th style={thStyle}>Category</th>
-                <th style={{ ...thStyle, borderRight: "none" }}>Views</th>
+                <th style={thStyle}>Year</th>
+                <th style={thStyle}>Views</th>
+                <th style={thStyle}>Likes</th>
+                <th style={{ ...thStyle, borderRight: "none" }}>Posted</th>
               </tr>
             </thead>
             <tbody>
@@ -935,17 +968,18 @@ function MySpaceContent({ user, onOpenStory }: { user: SessionUser; onOpenStory:
                   onClick={() => setSelectedStory(s)}
                   onDoubleClick={() => onOpenStory(s)}
                 >
-                  <td style={tdStyle}>
-                    <span style={{ fontSize: 11, marginRight: 4 }}>📄</span>{s.title}
-                  </td>
+                  <td style={tdStyle}><span style={{ fontSize: 11, marginRight: 4 }}>📄</span>{s.title}</td>
                   <td style={tdStyle}>{s.country || "—"}</td>
                   <td style={tdStyle}>{s.category || "—"}</td>
-                  <td style={{ ...tdStyle, borderRight: "none" }}>👁 {formatViews(s.views)}</td>
+                  <td style={tdStyle}>{s.year || "—"}</td>
+                  <td style={tdStyle}>{formatViews(s.views)}</td>
+                  <td style={tdStyle}>{s.like_count ?? 0}</td>
+                  <td style={{ ...tdStyle, borderRight: "none" }}>{formatDate(s.created_at)}</td>
                 </tr>
               ))}
               {!loading && displayedStories.length === 0 && (
                 <tr>
-                  <td colSpan={4} style={{ ...tdStyle, color: "#666", fontStyle: "italic", padding: "12px 8px" }}>
+                  <td colSpan={7} style={{ ...tdStyle, color: "#666", fontStyle: "italic", padding: "12px 8px" }}>
                     No stories found.
                   </td>
                 </tr>
@@ -958,7 +992,7 @@ function MySpaceContent({ user, onOpenStory }: { user: SessionUser; onOpenStory:
       {/* Status bar */}
       <div style={{ display: "flex", height: 20, flexShrink: 0 }}>
         <div style={{ flex: 1, border: "1px solid", borderColor: "#808080 #fff #fff #808080", padding: "1px 6px", fontSize: 11, fontFamily: ff }}>
-          {loading ? "Loading..." : `${stories.length} post(s) across ${countries.length} country${countries.length !== 1 ? "ies" : "y"}`}
+          {loading ? "Loading..." : `${stories.length} post(s) · ${stories.reduce((s, x) => s + (x.like_count ?? 0), 0)} likes · ${countries.length} countr${countries.length !== 1 ? "ies" : "y"}`}
         </div>
         <div style={{ width: 160, border: "1px solid", borderColor: "#808080 #fff #fff #808080", padding: "1px 6px", fontSize: 11, fontFamily: ff }}>
           {selectedStory ? selectedStory.title : ""}
@@ -1181,27 +1215,39 @@ export default function App() {
       )}
 
       {storyWindows.map(({ windowId, story, isMinimized, initialX, initialY }) => (
-        <Window key={windowId} title={story.title} initialX={initialX} initialY={initialY} initialWidth={660} initialHeight={480}
+        <Window key={windowId} title={story.title} initialX={initialX} initialY={initialY} initialWidth={680} initialHeight={520}
           onClose={() => closeStory(windowId)} onMinimize={() => minimizeStory(windowId)} isMinimized={isMinimized}
           zIndex={zIndexOf(windowId)} onFocus={() => bringToFront(windowId)}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-            <div>
-              <h2 style={{ margin: "0 0 4px 0", fontFamily: ff, fontSize: 13, fontWeight: "bold" }}>{story.title}</h2>
-              <div style={{ fontFamily: ff, fontSize: 11, color: "#444" }}>
-                Culture: <span style={{ textDecoration: "underline" }}>{story.culture}</span>
-              </div>
-              <div style={{ fontFamily: ff, fontSize: 11, color: "#444" }}>
-                Author: <span style={{ textDecoration: "underline" }}>{story.author_name}</span>
-              </div>
+          <div style={{ height: "100%", display: "flex", flexDirection: "column", fontFamily: ff, fontSize: 11 }}>
+            {/* Title header */}
+            <div style={{ background: "linear-gradient(to right, #000080, #4040c0)", color: "white", padding: "8px 12px", flexShrink: 0, marginBottom: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: "bold", marginBottom: 2 }}>{story.title}</div>
+              <div style={{ fontSize: 10, opacity: 0.85 }}>by {story.author_name || "Unknown"}</div>
             </div>
-            <div style={{ fontFamily: ff, fontSize: 11, color: "#333", display: "flex", alignItems: "center", gap: 6 }}>
-              <span>{formatViews(story.views)}</span><span>👁</span>
+
+            {/* Metadata strip */}
+            <div style={{ background: "#e8e8e8", borderBottom: "1px solid #c0c0c0", padding: "5px 12px", display: "flex", flexWrap: "wrap", gap: "10px 20px", flexShrink: 0 }}>
+              {story.country   && <span><b>Country:</b> {story.country}</span>}
+              {story.culture   && <span><b>Culture:</b> {story.culture}</span>}
+              {story.category  && <span><b>Category:</b> {story.category}</span>}
+              {story.year      && <span><b>Year:</b> {story.year}</span>}
+              <span style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
+                <span>👁 {formatViews(story.views)}</span>
+                <span>❤️ {story.like_count ?? 0}</span>
+              </span>
             </div>
-          </div>
-          <hr style={{ border: "none", borderTop: "1px solid #c0c0c0", margin: "8px 0 10px 0" }} />
-          <div style={{ fontFamily: ff, fontSize: 11, lineHeight: 1.6, color: "#111", whiteSpace: "pre-wrap" }}>
-            {story.text}
+
+            {/* Dates */}
+            <div style={{ background: "#f5f5f5", borderBottom: "1px solid #ddd", padding: "3px 12px", display: "flex", gap: 20, fontSize: 10, color: "#666", flexShrink: 0 }}>
+              <span>Posted: {formatDate(story.created_at)}</span>
+              {story.updated_at && story.updated_at !== story.created_at && <span>Updated: {formatDate(story.updated_at)}</span>}
+            </div>
+
+            {/* Story text */}
+            <div style={{ flex: 1, overflow: "auto", padding: "12px", lineHeight: 1.7, color: "#111", whiteSpace: "pre-wrap", fontSize: 11 }}>
+              {story.text}
+            </div>
           </div>
         </Window>
       ))}
