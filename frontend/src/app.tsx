@@ -244,6 +244,8 @@ function HometownContent() {
   );
 }
 
+// ── Ad Popup ────────────────────────────────────────────────────────────────
+
 const AD_GRADIENTS = [
   "linear-gradient(180deg, #8b0000 0%, #ff6600 50%, #ffd700 100%)",
   "linear-gradient(180deg, #00008b 0%, #0080ff 50%, #00e5ff 100%)",
@@ -342,6 +344,201 @@ function AdPopup({ ad, onClose, zIndex, onFocus }: { ad: AdData; onClose: () => 
   );
 }
 
+// ── Post a Story ─────────────────────────────────────────────────────────────
+
+const CATEGORIES = ["Myth", "Legend", "Epic", "Folktale", "Fable", "Fairy Tale", "Historical", "Religious", "Other"];
+
+type PostedStory = Story & { id: number };
+
+function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPosted: (story: PostedStory) => void }) {
+  const [title, setTitle] = useState("");
+  const [culture, setCulture] = useState("");
+  const [country, setCountry] = useState("");
+  const [year, setYear] = useState("");
+  const [category, setCategory] = useState("");
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [posted, setPosted] = useState<PostedStory | null>(null);
+
+  function resetForm() {
+    setTitle(""); setCulture(""); setCountry(""); setYear(""); setCategory(""); setText("");
+    setError(""); setPosted(null);
+  }
+
+  async function handleSubmit() {
+    setError("");
+    if (!title.trim()) { setError("Title is required."); return; }
+    if (!culture.trim()) { setError("Culture is required."); return; }
+    if (!category) { setError("Category is required."); return; }
+    if (!text.trim()) { setError("Story text is required."); return; }
+    if (year && (isNaN(Number(year)) || Number(year) < 0)) { setError("Year must be a valid number."); return; }
+
+    setLoading(true);
+    try {
+      const body = {
+        user_id: user.userId,
+        title: title.trim(),
+        culture: culture.trim(),
+        country: country.trim() || null,
+        year: year ? Number(year) : null,
+        category: category,
+        text: text,
+      };
+      const res = await fetch(`${API_BASE}/api/stories`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `Error ${res.status}`);
+      }
+      const data: PostedStory = await res.json();
+      setPosted(data);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to post story.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const inputStyle: React.CSSProperties = {
+    fontFamily: ff, fontSize: 11, padding: "2px 4px",
+    border: "1px solid", borderColor: "#808080 #fff #fff #808080",
+    background: "white", outline: "none", width: "100%", boxSizing: "border-box",
+  };
+  const labelStyle: React.CSSProperties = { width: 68, flexShrink: 0, fontFamily: ff, fontSize: 11 };
+  const rowStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: 6, marginBottom: 6 };
+
+  if (posted) {
+    return (
+      <div style={{ fontFamily: ff, fontSize: 11, padding: 16, display: "flex", flexDirection: "column", gap: 14, alignItems: "center", textAlign: "center" }}>
+        <div style={{ fontSize: 28 }}>✅</div>
+        <div style={{ fontWeight: "bold", fontSize: 13, color: "#000080" }}>Your story has been posted!</div>
+        <div style={{ color: "#333", fontSize: 11 }}>
+          <span style={{ fontStyle: "italic" }}>"{posted.title}"</span> is now live.
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+          <button
+            type="button"
+            onClick={resetForm}
+            style={{ fontFamily: ff, fontSize: 11, background: "#c0c0c0", border: "2px solid", borderColor: "#fff #808080 #808080 #fff", padding: "4px 12px", cursor: "pointer" }}
+          >
+            ✏️ Write another
+          </button>
+          <button
+            type="button"
+            onClick={() => onViewPosted(posted)}
+            style={{ fontFamily: ff, fontSize: 11, background: "#c0c0c0", border: "2px solid", borderColor: "#fff #808080 #808080 #fff", padding: "4px 12px", cursor: "pointer" }}
+          >
+            📖 See my post
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ fontFamily: ff, fontSize: 11, padding: 12, height: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column" }}>
+      <div style={{ background: "linear-gradient(to right, #000080, #4040c0)", color: "white", padding: "6px 10px", marginBottom: 10, display: "flex", alignItems: "center", gap: 8, flexShrink: 0, margin: "-12px -12px 10px -12px" }}>
+        <span style={{ fontSize: 18 }}>✍️</span>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: "bold" }}>Post a Story</div>
+          <div style={{ fontSize: 10, opacity: 0.8 }}>Signed in as {user.username}</div>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", paddingRight: 2 }}>
+        <div style={rowStyle}>
+          <span style={labelStyle}>Title <span style={{ color: "red" }}>*</span></span>
+          <input style={inputStyle} type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="a story without a title??" />
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>Culture <span style={{ color: "red" }}>*</span></span>
+          <input style={inputStyle} type="text" value={culture} onChange={e => setCulture(e.target.value)} placeholder="what culture is it from?" />
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>Country</span>
+          <input style={inputStyle} type="text" value={country} onChange={e => setCountry(e.target.value)} placeholder="which country is it from? (optional)" />
+        </div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+            <span style={{ ...labelStyle }}>Category <span style={{ color: "red" }}>*</span></span>
+            <select
+              value={category}
+              onChange={e => setCategory(e.target.value)}
+              style={{ ...inputStyle, flex: 1 }}
+            >
+              <option value="">-- select --</option>
+              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontFamily: ff, fontSize: 11, flexShrink: 0 }}>Year</span>
+            <input style={{ ...inputStyle, width: 70 }} type="text" value={year} onChange={e => setYear(e.target.value)} placeholder="optional" />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 4, fontFamily: ff, fontSize: 11 }}>
+          Story Text <span style={{ color: "red" }}>*</span>
+        </div>
+        <textarea
+          value={text}
+          onChange={e => setText(e.target.value)}
+          placeholder="a story without content??"
+          style={{
+            ...inputStyle,
+            height: 160,
+            resize: "vertical",
+            lineHeight: 1.5,
+            fontFamily: ff,
+            fontSize: 11,
+            padding: "4px 6px",
+          }}
+        />
+
+        {error && (
+          <div style={{ fontFamily: ff, fontSize: 11, color: "#cc0000", background: "#ffeeee", border: "1px solid #cc0000", padding: "3px 8px", marginTop: 4 }}>
+            {error}
+          </div>
+        )}
+      </div>
+
+      <div style={{ borderTop: "1px solid #808080", marginTop: 10, paddingTop: 8, display: "flex", justifyContent: "flex-end", flexShrink: 0 }}>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={loading}
+          style={{
+            fontFamily: ff, fontSize: 11, background: "#c0c0c0",
+            border: "2px solid", borderColor: "#fff #808080 #808080 #fff",
+            padding: "4px 24px", cursor: loading ? "default" : "pointer",
+            opacity: loading ? 0.6 : 1, fontWeight: "bold",
+          }}
+        >
+          {loading ? "Posting..." : "📨 Post Story"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PenIcon() {
+  return (
+    <svg viewBox="0 0 36 36" width={36} height={36} xmlns="http://www.w3.org/2000/svg">
+      <g transform="rotate(40, 18, 18)">
+        <rect x="15" y="4" width="7" height="20" rx="2" fill="#f5c842" stroke="#b8920a" strokeWidth="1" />
+        <rect x="20" y="5" width="2" height="16" rx="1" fill="#b8920a" />
+        <polygon points="15,24 22,24 18.5,31" fill="#d0d0d0" stroke="#888" strokeWidth="0.8" />
+        <polygon points="17.5,29 19.5,29 18.5,33" fill="#222" />
+        <rect x="15" y="3" width="7" height="3" rx="1.5" fill="#c0a020" stroke="#b8920a" strokeWidth="0.8" />
+      </g>
+    </svg>
+  );
+}
+
+// ── App ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(() => loadSession());
@@ -383,9 +580,11 @@ export default function App() {
       } catch { /* silent */ }
     }
 
+    // First ad after a short delay so the page feels settled
     const initialDelay = 8000;
     const firstTimer = setTimeout(() => {
       showAd();
+      // Then repeat every 5–10 minutes
       function scheduleNext() {
         const ms = (5 + Math.random() * 5) * 60 * 1000;
         setTimeout(() => { showAd(); scheduleNext(); }, ms);
@@ -404,8 +603,9 @@ export default function App() {
   const login = useWin("login", setZOrder, bringToFront);
   const account = useWin("account", setZOrder, bringToFront);
   const about = useWin("about", setZOrder, bringToFront);
+  const post = useWin("post", setZOrder, bringToFront);
 
-  const winMap: Record<string, { open: boolean; minimized: boolean; openWin: () => void; closeWin: () => void; minimizeWin: () => void }> = { search, hometown, login, account, about };
+  const winMap: Record<string, { open: boolean; minimized: boolean; openWin: () => void; closeWin: () => void; minimizeWin: () => void }> = { search, hometown, login, account, about, post };
 
   const [pendingAccountOpen, setPendingAccountOpen] = useState(false);
 
@@ -430,6 +630,11 @@ export default function App() {
 
   function handleAccountOpen() {
     if (currentUser) account.openWin();
+    else login.openWin();
+  }
+
+  function handlePostOpen() {
+    if (currentUser) post.openWin();
     else login.openWin();
   }
 
@@ -461,6 +666,7 @@ export default function App() {
   const taskWindows: TaskWindow[] = [
     ...(login.open ? [{ id: "login", title: "My Account", icon: "🖥️", isMinimized: login.minimized }] : []),
     ...(account.open ? [{ id: "account", title: currentUser?.username ?? "My Account", icon: "🖥️", isMinimized: account.minimized }] : []),
+    ...(post.open ? [{ id: "post", title: "Post a Story", icon: "✍️", isMinimized: post.minimized }] : []),
     ...(about.open ? [{ id: "about", title: "WOT Online", icon: "📋", isMinimized: about.minimized }] : []),
     ...(search.open ? [{ id: "search", title: "Weave Our Tapestry", icon: "📖", isMinimized: search.minimized }] : []),
     ...(hometown.open ? [{ id: "hometown", title: "Our Hometown", icon: "🏠", isMinimized: hometown.minimized }] : []),
@@ -474,7 +680,10 @@ export default function App() {
     <div style={{ width: "100vw", height: "100vh", paddingBottom: 48, boxSizing: "border-box", position: "relative" }}>
 
       <div style={{ position: "absolute", top: 20, left: 20, display: "flex", flexDirection: "column", gap: 12, zIndex: 1 }}>
-        <DesktopIcon label={currentUser ? currentUser.username : "My Account"} onClick={handleAccountOpen} renderIcon={() => <PcIcon />} />
+        <div style={{ display: "flex", gap: 8 }}>
+          <DesktopIcon label={currentUser ? currentUser.username : "My Account"} onClick={handleAccountOpen} renderIcon={() => <PcIcon />} />
+          <DesktopIcon label="Post a Story" onClick={handlePostOpen} renderIcon={() => <PenIcon />} />
+        </div>
         <DesktopIcon label="WOT" onClick={search.openWin} renderIcon={() => <WotIcon size={36} />} />
         <DesktopIcon label={"Our\nHometown"} onClick={hometown.openWin} renderIcon={() => <HometownIcon />} />
       </div>
@@ -549,6 +758,21 @@ export default function App() {
           </div>
         </Window>
       ))}
+
+      {post.open && currentUser && (
+        <Window title="Post a Story" initialX={cx - 220} initialY={cy - 260} initialWidth={440} initialHeight={520}
+          onClose={post.closeWin} onMinimize={post.minimizeWin} isMinimized={post.minimized}
+          zIndex={zIndexOf("post")} onFocus={() => bringToFront("post")}
+        >
+          <PostStoryContent
+            user={currentUser}
+            onViewPosted={(story) => {
+              handleOpenStory(story);
+              post.closeWin();
+            }}
+          />
+        </Window>
+      )}
 
       {ad && (
         <AdPopup
