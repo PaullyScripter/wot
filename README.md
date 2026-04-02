@@ -37,9 +37,6 @@ npm install
 
 ## Running
 
-> [!NOTE]
-> You can only run this locally.
-
 For backend (root):
 ```
 python3 -m uvicorn backend.main:app --reload
