@@ -99,6 +99,7 @@ export function TaskBar({ windows, activeId, onFocusWindow, isLoggedIn, username
             <MenuItem icon={<span style={{ fontSize: 15 }}>🔍</span>} label="Weave Our Tapestry" onClick={() => focus("search")} />
             <MenuItem icon={<span style={{ fontSize: 15 }}>🏠</span>} label="Our Hometown" onClick={() => focus("hometown")} />
             <MenuItem icon={<span style={{ fontSize: 15 }}>✍️</span>} label="Post a Story" onClick={() => focus(isLoggedIn ? "post" : "login")} />
+            <MenuItem icon={<span style={{ fontSize: 15 }}>📁</span>} label="My Space" onClick={() => focus(isLoggedIn ? "myspace" : "login")} />
             <MenuItem icon={<span style={{ fontSize: 15 }}>🖥️</span>} label={isLoggedIn && username ? username : "My Account"} onClick={() => focus(isLoggedIn ? "account" : "login")} />
             <MenuSep />
             <MenuItem icon={<span style={{ fontSize: 15 }}>🔌</span>} label="Shut Down..." onClick={close} />

@@ -80,21 +80,121 @@ function useWin(id: string, setZOrder: React.Dispatch<React.SetStateAction<strin
   return { open, minimized, openWin, closeWin, minimizeWin };
 }
 
-function DesktopIcon({ label, onClick, renderIcon }: { label: string; onClick: () => void; renderIcon: () => React.ReactNode }) {
+const GRID_COL = 90;   // px per grid column
+const GRID_ROW = 90;   // px per grid row
+const GRID_OFFSET_X = 16;
+const GRID_OFFSET_Y = 16;
+
+type IconId = "account" | "post" | "myspace" | "wot" | "hometown";
+
+const DEFAULT_POSITIONS: Record<IconId, { col: number; row: number }> = {
+  account:  { col: 0, row: 0 },
+  post:     { col: 1, row: 0 },
+  myspace:  { col: 1, row: 1 },
+  wot:      { col: 0, row: 1 },
+  hometown: { col: 0, row: 2 },
+};
+
+function snapToGrid(x: number, y: number): { col: number; row: number } {
+  return {
+    col: Math.max(0, Math.round((x - GRID_OFFSET_X) / GRID_COL)),
+    row: Math.max(0, Math.round((y - GRID_OFFSET_Y) / GRID_ROW)),
+  };
+}
+
+function gridToPixel(col: number, row: number): { x: number; y: number } {
+  return {
+    x: GRID_OFFSET_X + col * GRID_COL,
+    y: GRID_OFFSET_Y + row * GRID_ROW,
+  };
+}
+
+function DraggableIcon({
+  id, label, onClick, renderIcon, position, onDrop, allPositions,
+}: {
+  id: IconId;
+  label: string;
+  onClick: () => void;
+  renderIcon: () => React.ReactNode;
+  position: { col: number; row: number };
+  onDrop: (id: IconId, col: number, row: number) => void;
+  allPositions: Record<IconId, { col: number; row: number }>;
+}) {
   const [selected, setSelected] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+  const dragStart = useRef<{ mouseX: number; mouseY: number; iconX: number; iconY: number } | null>(null);
+  const didDrag = useRef(false);
+
+  const { x, y } = gridToPixel(position.col, position.row);
+
+  function onMouseDown(e: React.MouseEvent) {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    setSelected(true);
+    didDrag.current = false;
+    dragStart.current = { mouseX: e.clientX, mouseY: e.clientY, iconX: x, iconY: y };
+
+    function onMove(ev: MouseEvent) {
+      if (!dragStart.current) return;
+      const dx = ev.clientX - dragStart.current.mouseX;
+      const dy = ev.clientY - dragStart.current.mouseY;
+      if (!dragging && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+      didDrag.current = true;
+      setDragging(true);
+      setDragPos({ x: dragStart.current.iconX + dx, y: dragStart.current.iconY + dy });
+    }
+
+    function onUp(ev: MouseEvent) {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      if (didDrag.current && dragStart.current) {
+        const dx = ev.clientX - dragStart.current.mouseX;
+        const dy = ev.clientY - dragStart.current.mouseY;
+        const newX = dragStart.current.iconX + dx;
+        const newY = dragStart.current.iconY + dy;
+        const snapped = snapToGrid(newX, newY);
+        // Check if another icon occupies that cell; if so, swap
+        const occupant = (Object.entries(allPositions) as [IconId, { col: number; row: number }][])
+          .find(([oid, p]) => oid !== id && p.col === snapped.col && p.row === snapped.row);
+        if (occupant) {
+          onDrop(occupant[0], position.col, position.row);
+        }
+        onDrop(id, snapped.col, snapped.row);
+      }
+      setDragging(false);
+      setDragPos(null);
+      dragStart.current = null;
+    }
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }
+
+  const currentX = dragging && dragPos ? dragPos.x : x;
+  const currentY = dragging && dragPos ? dragPos.y : y;
+
   return (
     <div
-      onMouseDown={() => setSelected(true)}
-      onBlur={() => setSelected(false)}
-      onDoubleClick={() => { setSelected(false); onClick(); }}
+      onMouseDown={onMouseDown}
+      onMouseUp={() => { if (!didDrag.current) setSelected(s => !s); }}
+      onDoubleClick={() => { if (!didDrag.current) { setSelected(false); onClick(); } }}
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onClick()}
+      onBlur={() => setSelected(false)}
       style={{
+        position: "absolute",
+        left: currentX,
+        top: currentY,
+        width: 80,
         display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-        padding: "4px", width: 72, cursor: "default", userSelect: "none",
+        padding: "4px", cursor: dragging ? "grabbing" : "default",
+        userSelect: "none",
         background: selected ? "rgba(0,0,128,0.4)" : "transparent",
         border: `1px solid ${selected ? "rgba(255,255,255,0.5)" : "transparent"}`,
         color: "white", textShadow: "1px 1px 1px #000",
+        zIndex: dragging ? 500 : 1,
+        opacity: dragging ? 0.85 : 1,
       }}
     >
       <div style={{ filter: selected ? "brightness(0.75)" : "none" }}>{renderIcon()}</div>
@@ -344,9 +444,154 @@ function AdPopup({ ad, onClose, zIndex, onFocus }: { ad: AdData; onClose: () => 
   );
 }
 
-// ── Post a Story ─────────────────────────────────────────────────────────────
+// ── Splash Screen ────────────────────────────────────────────────────────────
+
+const BOOT_LINES = [
+  { text: "WOT BIOS v1.0  Copyright (C) 2026 WOT Online Inc.", delay: 0 },
+  { text: "", delay: 150 },
+  { text: "CPU: WOT-686 @ 133MHz", delay: 300 },
+  { text: "Memory Test: 16384K OK", delay: 600 },
+  { text: "", delay: 800 },
+  { text: "Detecting Primary Master... ST31276A", delay: 1000 },
+  { text: "Detecting Primary Slave ... None", delay: 1300 },
+  { text: "", delay: 1550 },
+  { text: "WOT Online Network Adapter... found", delay: 1750 },
+  { text: "Loading story database........... OK", delay: 2100 },
+  { text: "Initializing culture engine....... OK", delay: 2450 },
+  { text: "", delay: 2700 },
+  { text: "Starting WOT Online v1.0", delay: 2900 },
+  { text: "", delay: 3100 },
+  { text: "██████████████████████  100%", delay: 3300 },
+  { text: "", delay: 3700 },
+  { text: "Welcome to Weave Our Tapestry.", delay: 3900 },
+  { text: "Connecting cultures, one story at a time.", delay: 4150 },
+];
+
+const READY_DELAY = 4800; // when the "ready" prompt appears // ms before auto-dismiss
+
+function SplashScreen({ onDone }: { onDone: () => void }) {
+  const [visibleLines, setVisibleLines] = useState<string[]>([]);
+  const [ready, setReady] = useState(false);
+  const [fading, setFading] = useState(false);
+
+  function dismiss() {
+    if (!ready) return;
+    setFading(true);
+    setTimeout(onDone, 500);
+  }
+
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    BOOT_LINES.forEach(({ text, delay }) => {
+      timers.push(setTimeout(() => {
+        setVisibleLines(prev => [...prev, text]);
+      }, delay));
+    });
+
+    timers.push(setTimeout(() => setReady(true), READY_DELAY));
+
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  useEffect(() => {
+    const onKey = () => dismiss();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [ready]);
+
+  return (
+    <div
+      onClick={dismiss}
+      style={{
+        position: "fixed", inset: 0, zIndex: 999999,
+        background: "#000",
+        display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "flex-start",
+        padding: "10vh 8vw",
+        fontFamily: "'Courier New', Courier, monospace",
+        fontSize: "clamp(11px, 1.4vw, 15px)",
+        color: "#aaa",
+        cursor: ready ? "pointer" : "default",
+        transition: fading ? "opacity 0.5s ease" : "none",
+        opacity: fading ? 0 : 1,
+        userSelect: "none",
+        isolation: "isolate",
+      }}
+    >
+      {/* Blue BIOS top bar */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0,
+        background: "#0000aa", color: "#fff",
+        fontFamily: "'Courier New', Courier, monospace",
+        fontSize: "clamp(11px, 1.3vw, 14px)",
+        padding: "4px 12px",
+        display: "flex", justifyContent: "space-between",
+      }}>
+        <span>WOT BIOS Setup Utility</span>
+        <span>{ready ? "Click or press any key to continue" : "Loading..."}</span>
+      </div>
+
+      <div style={{ marginTop: 32, width: "100%", maxWidth: 680 }}>
+        {visibleLines.map((line, i) => (
+          <div key={i} style={{
+            lineHeight: "1.7",
+            color: line.startsWith("██") ? "#00aa00"
+              : line.startsWith("Welcome") || line.startsWith("Connecting") ? "#ffcc00"
+              : line.startsWith("Starting") ? "#ffffff"
+              : "#aaaaaa",
+            fontWeight: line.startsWith("Starting") || line.startsWith("Welcome") ? "bold" : "normal",
+            whiteSpace: "pre",
+          }}>
+            {line || "\u00a0"}
+          </div>
+        ))}
+
+        {ready && (
+          <div style={{ marginTop: 24, color: "#00ff00", fontWeight: "bold", animation: "none" }}>
+            Your computer is ready. Click or press any key to continue to WOT.
+          </div>
+        )}
+
+        {!ready && <Cursor />}
+      </div>
+    </div>
+  );
+}
+
+function Cursor() {
+  const [on, setOn] = useState(true);
+  useEffect(() => {
+    const t = setInterval(() => setOn(v => !v), 530);
+    return () => clearInterval(t);
+  }, []);
+  return <span style={{ color: "#aaa" }}>{on ? "█" : " "}</span>;
+}
+
+
 
 const CATEGORIES = ["Myth", "Legend", "Epic", "Folktale", "Fable", "Fairy Tale", "Historical", "Religious", "Other"];
+
+const ALL_COUNTRIES = [
+  "Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria",
+  "Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan",
+  "Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia",
+  "Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo (Congo-Brazzaville)","Congo (DRC)",
+  "Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador",
+  "Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France",
+  "Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau",
+  "Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan",
+  "Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar",
+  "Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia",
+  "Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal",
+  "Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan",
+  "Palau","Palestine","Panama","Papua New Guinea", "Palestine", "Paraguay","Peru","Philippines","Poland","Portugal","Qatar",
+  "Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia",
+  "Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa",
+  "South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan",
+  "Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan",
+  "Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City",
+  "Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
+];
 
 type PostedStory = Story & { id: number };
 
@@ -369,7 +614,7 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
   async function handleSubmit() {
     setError("");
     if (!title.trim()) { setError("Title is required."); return; }
-    if (!culture.trim()) { setError("Culture is required."); return; }
+    if (!country.trim()) { setError("Country is required."); return; }
     if (!category) { setError("Category is required."); return; }
     if (!text.trim()) { setError("Story text is required."); return; }
     if (year && (isNaN(Number(year)) || Number(year) < 0)) { setError("Year must be a valid number."); return; }
@@ -379,8 +624,8 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
       const body = {
         user_id: user.userId,
         title: title.trim(),
-        culture: culture.trim(),
-        country: country.trim() || null,
+        culture: culture.trim() || null,
+        country: country.trim(),
         year: year ? Number(year) : null,
         category: category,
         text: text,
@@ -452,15 +697,22 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
       <div style={{ flex: 1, overflowY: "auto", paddingRight: 2 }}>
         <div style={rowStyle}>
           <span style={labelStyle}>Title <span style={{ color: "red" }}>*</span></span>
-          <input style={inputStyle} type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="a story without a title??" />
+          <input style={inputStyle} type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="title of story" />
         </div>
         <div style={rowStyle}>
-          <span style={labelStyle}>Culture <span style={{ color: "red" }}>*</span></span>
-          <input style={inputStyle} type="text" value={culture} onChange={e => setCulture(e.target.value)} placeholder="what culture is it from?" />
+          <span style={labelStyle}>Country <span style={{ color: "red" }}>*</span></span>
+          <select
+            value={country}
+            onChange={e => setCountry(e.target.value)}
+            style={{ ...inputStyle, flex: 1 }}
+          >
+            <option value="">-- select country --</option>
+            {ALL_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
         </div>
         <div style={rowStyle}>
-          <span style={labelStyle}>Country</span>
-          <input style={inputStyle} type="text" value={country} onChange={e => setCountry(e.target.value)} placeholder="which country is it from? (optional)" />
+          <span style={labelStyle}>Culture</span>
+          <input style={inputStyle} type="text" value={culture} onChange={e => setCulture(e.target.value)} placeholder="culture of story" />
         </div>
         <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
@@ -486,7 +738,7 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
-          placeholder="a story without content??"
+          placeholder="story itself..."
           style={{
             ...inputStyle,
             height: 160,
@@ -527,7 +779,7 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
 function PenIcon() {
   return (
     <svg viewBox="0 0 36 36" width={36} height={36} xmlns="http://www.w3.org/2000/svg">
-      <g transform="rotate(40, 18, 18)">
+      <g transform="rotate(-40, 18, 18)">
         <rect x="15" y="4" width="7" height="20" rx="2" fill="#f5c842" stroke="#b8920a" strokeWidth="1" />
         <rect x="20" y="5" width="2" height="16" rx="1" fill="#b8920a" />
         <polygon points="15,24 22,24 18.5,31" fill="#d0d0d0" stroke="#888" strokeWidth="0.8" />
@@ -535,6 +787,184 @@ function PenIcon() {
         <rect x="15" y="3" width="7" height="3" rx="1.5" fill="#c0a020" stroke="#b8920a" strokeWidth="0.8" />
       </g>
     </svg>
+  );
+}
+
+// ── My Space ─────────────────────────────────────────────────────────────────
+
+function FolderExplorerIcon() {
+  return (
+    <svg viewBox="0 0 36 36" width={36} height={36} xmlns="http://www.w3.org/2000/svg">
+      {/* Back folder */}
+      <rect x="2" y="10" width="22" height="16" rx="1" fill="#c8a020" stroke="#886800" strokeWidth="1" />
+      {/* Folder tab */}
+      <rect x="2" y="7" width="8" height="4" rx="1" fill="#c8a020" stroke="#886800" strokeWidth="1" />
+      {/* Front folder */}
+      <rect x="6" y="13" width="26" height="16" rx="1" fill="#f5c842" stroke="#b8920a" strokeWidth="1" />
+      {/* Paper lines */}
+      <line x1="10" y1="18" x2="28" y2="18" stroke="#b8920a" strokeWidth="1" />
+      <line x1="10" y1="21" x2="28" y2="21" stroke="#b8920a" strokeWidth="1" />
+      <line x1="10" y1="24" x2="22" y2="24" stroke="#b8920a" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function MySpaceContent({ user, onOpenStory }: { user: SessionUser; onOpenStory: (story: Story) => void }) {
+  const [stories, setStories] = useState<Story[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedStory, setSelectedStory] = useState<Story | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_BASE}/api/stories`);
+        if (!res.ok) throw new Error("Failed to load");
+        const all: Story[] = await res.json();
+        const mine = all.filter(s => (s as Story & { user_id?: number }).user_id === user.userId
+          || (s.author_name && s.author_name === user.username));
+        setStories(mine);
+      } catch {
+        setError("Failed to load stories.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [user]);
+
+  // Group by country
+  const byCountry = stories.reduce<Record<string, Story[]>>((acc, s) => {
+    const key = s.country?.trim() || "Unknown";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(s);
+    return acc;
+  }, {});
+
+  const countries = Object.keys(byCountry).sort();
+  const displayedStories = selectedCountry ? (byCountry[selectedCountry] ?? []) : stories;
+
+  const thStyle: React.CSSProperties = {
+    fontFamily: ff, fontSize: 11, fontWeight: "bold", padding: "2px 8px",
+    background: "#c0c0c0", borderRight: "1px solid #808080",
+    borderBottom: "2px solid #808080", textAlign: "left", whiteSpace: "nowrap",
+  };
+  const tdStyle: React.CSSProperties = {
+    fontFamily: ff, fontSize: 11, padding: "2px 8px",
+    borderBottom: "1px solid #d0d0d0", borderRight: "1px solid #d0d0d0",
+    whiteSpace: "nowrap", overflow: "hidden", maxWidth: 180, textOverflow: "ellipsis",
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#c0c0c0", fontFamily: ff, fontSize: 11 }}>
+      {/* Main area */}
+      <div style={{ flex: 1, display: "flex", overflow: "hidden", borderBottom: "1px solid #808080" }}>
+
+        {/* Left tree panel */}
+        <div style={{
+          width: 200, flexShrink: 0, borderRight: "2px solid #808080",
+          background: "white", overflow: "auto", padding: "4px 0",
+        }}>
+          {/* Header */}
+          <div style={{ padding: "3px 6px", background: "#c0c0c0", borderBottom: "1px solid #808080", fontWeight: "bold", fontSize: 11 }}>
+            Stories
+          </div>
+
+          {loading && <div style={{ padding: 8, color: "#666", fontStyle: "italic" }}>Loading...</div>}
+          {error && <div style={{ padding: 8, color: "red" }}>{error}</div>}
+
+          {!loading && !error && (
+            <div style={{ padding: "4px 0" }}>
+              {/* Root node = username */}
+              <div
+                style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 6px", cursor: "pointer", background: selectedCountry === null ? "#000080" : "transparent", color: selectedCountry === null ? "white" : "black" }}
+                onClick={() => { setSelectedCountry(null); setSelectedStory(null); }}
+              >
+                <span style={{ fontSize: 14 }}>📁</span>
+                <span style={{ fontWeight: "bold" }}>{user.username}</span>
+              </div>
+
+              {/* Country folders */}
+              {countries.map(country => (
+                <div key={country}>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 6px 2px 16px", cursor: "pointer", background: selectedCountry === country ? "#000080" : "transparent", color: selectedCountry === country ? "white" : "black" }}
+                    onClick={() => { setSelectedCountry(country); setSelectedStory(null); }}
+                  >
+                    <span style={{ fontSize: 12 }}>{selectedCountry === country ? "📂" : "📁"}</span>
+                    <span>{country}</span>
+                    <span style={{ marginLeft: "auto", fontSize: 10, opacity: 0.7 }}>({byCountry[country].length})</span>
+                  </div>
+
+                  {/* Story items under expanded country */}
+                  {selectedCountry === country && byCountry[country].map(s => (
+                    <div
+                      key={s.id}
+                      style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 6px 2px 28px", cursor: "pointer", background: selectedStory?.id === s.id ? "#000080" : "transparent", color: selectedStory?.id === s.id ? "white" : "black" }}
+                      onClick={() => setSelectedStory(s)}
+                      onDoubleClick={() => onOpenStory(s)}
+                    >
+                      <span style={{ fontSize: 11 }}>📄</span>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 120 }}>{s.title}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right file list panel */}
+        <div style={{ flex: 1, background: "white", overflow: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={thStyle}>Name</th>
+                <th style={thStyle}>Country</th>
+                <th style={thStyle}>Category</th>
+                <th style={{ ...thStyle, borderRight: "none" }}>Views</th>
+              </tr>
+            </thead>
+            <tbody>
+              {!loading && displayedStories.map(s => (
+                <tr
+                  key={s.id}
+                  style={{ background: selectedStory?.id === s.id ? "#000080" : "transparent", color: selectedStory?.id === s.id ? "white" : "black", cursor: "pointer" }}
+                  onClick={() => setSelectedStory(s)}
+                  onDoubleClick={() => onOpenStory(s)}
+                >
+                  <td style={tdStyle}>
+                    <span style={{ fontSize: 11, marginRight: 4 }}>📄</span>{s.title}
+                  </td>
+                  <td style={tdStyle}>{s.country || "—"}</td>
+                  <td style={tdStyle}>{s.category || "—"}</td>
+                  <td style={{ ...tdStyle, borderRight: "none" }}>👁 {formatViews(s.views)}</td>
+                </tr>
+              ))}
+              {!loading && displayedStories.length === 0 && (
+                <tr>
+                  <td colSpan={4} style={{ ...tdStyle, color: "#666", fontStyle: "italic", padding: "12px 8px" }}>
+                    No stories found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Status bar */}
+      <div style={{ display: "flex", height: 20, flexShrink: 0 }}>
+        <div style={{ flex: 1, border: "1px solid", borderColor: "#808080 #fff #fff #808080", padding: "1px 6px", fontSize: 11, fontFamily: ff }}>
+          {loading ? "Loading..." : `${stories.length} post(s) across ${countries.length} country${countries.length !== 1 ? "ies" : "y"}`}
+        </div>
+        <div style={{ width: 160, border: "1px solid", borderColor: "#808080 #fff #fff #808080", padding: "1px 6px", fontSize: 11, fontFamily: ff }}>
+          {selectedStory ? selectedStory.title : ""}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -604,10 +1034,22 @@ export default function App() {
   const account = useWin("account", setZOrder, bringToFront);
   const about = useWin("about", setZOrder, bringToFront);
   const post = useWin("post", setZOrder, bringToFront);
+  const myspace = useWin("myspace", setZOrder, bringToFront);
 
-  const winMap: Record<string, { open: boolean; minimized: boolean; openWin: () => void; closeWin: () => void; minimizeWin: () => void }> = { search, hometown, login, account, about, post };
+  const winMap: Record<string, { open: boolean; minimized: boolean; openWin: () => void; closeWin: () => void; minimizeWin: () => void }> = { search, hometown, login, account, about, post, myspace };
 
+  const [showSplash, setShowSplash] = useState(() => {
+    if (sessionStorage.getItem("wot_booted")) return false;
+    sessionStorage.setItem("wot_booted", "1");
+    return true;
+  });
   const [pendingAccountOpen, setPendingAccountOpen] = useState(false);
+
+  const [iconPositions, setIconPositions] = useState<Record<IconId, { col: number; row: number }>>({ ...DEFAULT_POSITIONS });
+
+  function handleIconDrop(id: IconId, col: number, row: number) {
+    setIconPositions(prev => ({ ...prev, [id]: { col, row } }));
+  }
 
   useEffect(() => {
     if (pendingAccountOpen && currentUser) {
@@ -635,6 +1077,11 @@ export default function App() {
 
   function handlePostOpen() {
     if (currentUser) post.openWin();
+    else login.openWin();
+  }
+
+  function handleMySpaceOpen() {
+    if (currentUser) myspace.openWin();
     else login.openWin();
   }
 
@@ -667,6 +1114,7 @@ export default function App() {
     ...(login.open ? [{ id: "login", title: "My Account", icon: "🖥️", isMinimized: login.minimized }] : []),
     ...(account.open ? [{ id: "account", title: currentUser?.username ?? "My Account", icon: "🖥️", isMinimized: account.minimized }] : []),
     ...(post.open ? [{ id: "post", title: "Post a Story", icon: "✍️", isMinimized: post.minimized }] : []),
+    ...(myspace.open ? [{ id: "myspace", title: `My Space - ${currentUser?.username ?? ""}`, icon: "📁", isMinimized: myspace.minimized }] : []),
     ...(about.open ? [{ id: "about", title: "WOT Online", icon: "📋", isMinimized: about.minimized }] : []),
     ...(search.open ? [{ id: "search", title: "Weave Our Tapestry", icon: "📖", isMinimized: search.minimized }] : []),
     ...(hometown.open ? [{ id: "hometown", title: "Our Hometown", icon: "🏠", isMinimized: hometown.minimized }] : []),
@@ -679,14 +1127,13 @@ export default function App() {
   return (
     <div style={{ width: "100vw", height: "100vh", paddingBottom: 48, boxSizing: "border-box", position: "relative" }}>
 
-      <div style={{ position: "absolute", top: 20, left: 20, display: "flex", flexDirection: "column", gap: 12, zIndex: 1 }}>
-        <div style={{ display: "flex", gap: 8 }}>
-          <DesktopIcon label={currentUser ? currentUser.username : "My Account"} onClick={handleAccountOpen} renderIcon={() => <PcIcon />} />
-          <DesktopIcon label="Post a Story" onClick={handlePostOpen} renderIcon={() => <PenIcon />} />
-        </div>
-        <DesktopIcon label="WOT" onClick={search.openWin} renderIcon={() => <WotIcon size={36} />} />
-        <DesktopIcon label={"Our\nHometown"} onClick={hometown.openWin} renderIcon={() => <HometownIcon />} />
-      </div>
+      {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
+
+      <DraggableIcon id="account" label={currentUser ? currentUser.username : "My Account"} onClick={handleAccountOpen} renderIcon={() => <PcIcon />} position={iconPositions.account} onDrop={handleIconDrop} allPositions={iconPositions} />
+      <DraggableIcon id="post"    label="Post a Story" onClick={handlePostOpen}    renderIcon={() => <PenIcon />}            position={iconPositions.post}    onDrop={handleIconDrop} allPositions={iconPositions} />
+      <DraggableIcon id="myspace" label="My Space"     onClick={handleMySpaceOpen} renderIcon={() => <FolderExplorerIcon />} position={iconPositions.myspace} onDrop={handleIconDrop} allPositions={iconPositions} />
+      <DraggableIcon id="wot"     label="WOT"          onClick={search.openWin}    renderIcon={() => <WotIcon size={36} />}  position={iconPositions.wot}     onDrop={handleIconDrop} allPositions={iconPositions} />
+      <DraggableIcon id="hometown" label={"Our Hometown"} onClick={hometown.openWin} renderIcon={() => <HometownIcon />}    position={iconPositions.hometown} onDrop={handleIconDrop} allPositions={iconPositions} />
 
       {login.open && (
         <Window title="My Account" initialX={cx - 175} initialY={cy - 220} initialWidth={350} initialHeight={420}
@@ -771,6 +1218,17 @@ export default function App() {
               post.closeWin();
             }}
           />
+        </Window>
+      )}
+
+      {myspace.open && currentUser && (
+        <Window
+          title={`My Space - ${currentUser.username}`}
+          initialX={cx - 320} initialY={cy - 250} initialWidth={640} initialHeight={480}
+          onClose={myspace.closeWin} onMinimize={myspace.minimizeWin} isMinimized={myspace.minimized}
+          zIndex={zIndexOf("myspace")} onFocus={() => bringToFront("myspace")}
+        >
+          <MySpaceContent user={currentUser} onOpenStory={handleOpenStory} />
         </Window>
       )}
 

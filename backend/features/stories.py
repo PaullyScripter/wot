@@ -12,17 +12,17 @@ def map_story(story: Story):
         "category": story.category,
         "text": story.text,
         "views": story.views,
-        "author_name": story.user.username if story.user else None,
+        "author_name": story.author.username if story.author else None,
     }
 
 def list_all_stories(db: Session):
-    stories = db.query(Story).options(joinedload(Story.user)).all()
+    stories = db.query(Story).options(joinedload(Story.author)).all()
     return [map_story(s) for s in stories]
 
 def get_story_by_id(db: Session, story_id: int):
     story = (
     db.query(Story)
-    .options(joinedload(Story.user))
+    .options(joinedload(Story.author))
     .filter(Story.id == story_id)
     .first()
    )
