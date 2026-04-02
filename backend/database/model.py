@@ -8,7 +8,7 @@ File Description: Defines what a “Story” looks like in the database - bluepr
 """
 
 
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
 from .db import Base
 from pydantic import BaseModel  
@@ -29,7 +29,12 @@ class Story(Base):
     views = Column(Integer, default=0, nullable=False)
     like_count = Column(Integer, default=0)
 
-    user = relationship("User")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+    author = relationship("User")
+    comments = relationship("Comment", back_populates="story", cascade="all, delete-orphan")
 
 
 class User(Base):
@@ -41,27 +46,27 @@ class User(Base):
     password_salt =  Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
 
-class UserRegister(BaseModel):
-    username: str
-    email: str
-    password: str
+    stories = relationship("Story",back_populates="author", cascade="all,delete-orphan")
+    comments = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
 
-class UserLogin(BaseModel):
-    email: str
-    password: str
 
-class UserOut(BaseModel):
-    id: int
-    username: str
-    email: str
+class Comment(Base):
+    __tablename__ = "comments"
 
-    class Config:
-        from_attributes = True
+    commentid = Column(Integer, primary_key=True, index=True)
+    parent_comment_id = Column(Integer, ForeignKey("comments.commentid", ondelete="CASCADE"), nullable=True)
+    storyid = Column(Integer, ForeignKey("stories.id", ondelete="CASCADE"), nullable=False)
+    userid = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    content = Column(Text, nullable=False)
 
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str
-    user: UserOut
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    story = relationship("Story", back_populates="comments")
+    user = relationship("User", back_populates="comments")
+    parent = relationship("Comment", remote_side=[commentid], backref="replies")
+
+
+
 
 
 
