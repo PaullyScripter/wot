@@ -200,7 +200,7 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
               )}
               {r.created_at && (
                 <div style={{ fontFamily: "'Courier Prime', monospace", fontSize: 11, color: "#666" }}>
-                  🗓 {formatDate(r.created_at)}
+                  {formatDate(r.created_at)}
                 </div>
               )}
 
@@ -215,8 +215,8 @@ export function SearchPanel({ onOpenStory }: SearchPanelProps) {
                   gap: 8,
                 }}
               >
-                <span>👁 {formatViews(r.views)}</span>
-                <span>❤️ {r.like_count ?? 0}</span>
+                <span>View(s): {formatViews(r.views)}</span>
+                <span>Like(s): {r.like_count ?? 0}</span>
                 <button
                   type="button"
                   onMouseDown={(e) => e.stopPropagation()}

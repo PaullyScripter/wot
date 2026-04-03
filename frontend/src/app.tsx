@@ -355,9 +355,9 @@ function HometownContent() {
 
               {/* Stats row */}
               <div style={{ marginTop: 5, fontSize: 10, color: "#666", display: "flex", gap: 10, alignItems: "center" }}>
-                <span>👁 {formatViews(story.views)} views</span>
-                <span>❤️ {story.like_count ?? 0} likes</span>
-                {story.created_at && <span>🗓 {formatDate(story.created_at)}</span>}
+                <span>{formatViews(story.views)} views</span>
+                <span>{story.like_count ?? 0} likes</span>
+                {story.created_at && <span>{formatDate(story.created_at)}</span>}
                 {i === 0 && <span style={{ color: "#c04000", fontWeight: "bold", marginLeft: "auto" }}>🔥 Most Read</span>}
               </div>
             </div>
@@ -454,7 +454,7 @@ function AdPopup({ ad, onClose, zIndex, onFocus }: { ad: AdData; onClose: () => 
             )}
             {ad.story.author_name && (
               <div style={{ fontFamily: titleFont, fontSize: 12, fontStyle: "italic", color: "rgba(255,255,255,0.75)" }}>
-                by {ad.story.author_name}
+                uploaded by {ad.story.author_name}
               </div>
             )}
           </>
@@ -474,29 +474,28 @@ function AdPopup({ ad, onClose, zIndex, onFocus }: { ad: AdData; onClose: () => 
 }
 
 // ── Splash Screen ────────────────────────────────────────────────────────────
-
 const BOOT_LINES = [
   { text: "WOT BIOS v1.0  Copyright (C) 2026 WOT Online Inc.", delay: 0 },
-  { text: "", delay: 150 },
-  { text: "CPU: WOT-686 @ 133MHz", delay: 300 },
-  { text: "Memory Test: 16384K OK", delay: 600 },
-  { text: "", delay: 800 },
-  { text: "Detecting Primary Master... ST31276A", delay: 1000 },
-  { text: "Detecting Primary Slave ... None", delay: 1300 },
-  { text: "", delay: 1550 },
-  { text: "WOT Online Network Adapter... found", delay: 1750 },
-  { text: "Loading story database........... OK", delay: 2100 },
-  { text: "Initializing culture engine....... OK", delay: 2450 },
-  { text: "", delay: 2700 },
-  { text: "Starting WOT Online v1.0", delay: 2900 },
-  { text: "", delay: 3100 },
-  { text: "██████████████████████  100%", delay: 3300 },
-  { text: "", delay: 3700 },
-  { text: "Welcome to Weave Our Tapestry.", delay: 3900 },
-  { text: "Connecting cultures, one story at a time.", delay: 4150 },
+  { text: "", delay: 80 },
+  { text: "CPU: WOT-686 @ 133MHz", delay: 150 },
+  { text: "Memory Test: 16384K OK", delay: 300 },
+  { text: "", delay: 420 },
+  { text: "Detecting Primary Master... ST31276A", delay: 550 },
+  { text: "Detecting Primary Slave ... None", delay: 720 },
+  { text: "", delay: 850 },
+  { text: "WOT Online Network Adapter... found", delay: 980 },
+  { text: "Loading story database........... OK", delay: 1150 },
+  { text: "Initializing culture engine....... OK", delay: 1320 },
+  { text: "", delay: 1450 },
+  { text: "Starting WOT Online v1.0", delay: 1580 },
+  { text: "", delay: 1700 },
+  { text: "██████████████████████  100%", delay: 1850 },
+  { text: "", delay: 2050 },
+  { text: "Welcome to Weave Our Tapestry.", delay: 2200 },
+  { text: "Connecting cultures, one story at a time.", delay: 2400 },
 ];
 
-const READY_DELAY = 4800; // when the "ready" prompt appears // ms before auto-dismiss
+const READY_DELAY = 2700;
 
 function SplashScreen({ onDone }: { onDone: () => void }) {
   const [visibleLines, setVisibleLines] = useState<string[]>([]);
@@ -1223,7 +1222,7 @@ export default function App() {
             {/* Title header */}
             <div style={{ background: "linear-gradient(to right, #000080, #4040c0)", color: "white", padding: "8px 12px", flexShrink: 0, marginBottom: 0 }}>
               <div style={{ fontSize: 14, fontWeight: "bold", marginBottom: 2 }}>{story.title}</div>
-              <div style={{ fontSize: 10, opacity: 0.85 }}>by {story.author_name || "Unknown"}</div>
+              <div style={{ fontSize: 10, opacity: 0.85 }}>uploaded by {story.author_name || "Unknown"}</div>
             </div>
 
             {/* Metadata strip */}
@@ -1233,8 +1232,8 @@ export default function App() {
               {story.category  && <span><b>Category:</b> {story.category}</span>}
               {story.year      && <span><b>Year:</b> {story.year}</span>}
               <span style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
-                <span>👁 {formatViews(story.views)}</span>
-                <span>❤️ {story.like_count ?? 0}</span>
+                <span>View(s): {formatViews(story.views)}</span>
+                <span>Like(s): {story.like_count ?? 0}</span>
               </span>
             </div>
 
