@@ -726,7 +726,7 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
       <div style={{ flex: 1, overflowY: "auto", paddingRight: 2 }}>
         <div style={rowStyle}>
           <span style={labelStyle}>Title <span style={{ color: "red" }}>*</span></span>
-          <input style={inputStyle} type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. The Legend of the Dragon" />
+          <input style={inputStyle} type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="the story's title" />
         </div>
         <div style={rowStyle}>
           <span style={labelStyle}>Country <span style={{ color: "red" }}>*</span></span>
@@ -741,7 +741,7 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
         </div>
         <div style={rowStyle}>
           <span style={labelStyle}>Culture</span>
-          <input style={inputStyle} type="text" value={culture} onChange={e => setCulture(e.target.value)} placeholder="e.g. Norse, Aztec... (optional)" />
+          <input style={inputStyle} type="text" value={culture} onChange={e => setCulture(e.target.value)} placeholder="the story's culture (optional)" />
         </div>
         <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
@@ -767,7 +767,7 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
-          placeholder="Write your story here... All characters, symbols, and languages are welcome ✨"
+          placeholder="the story itself"
           style={{
             ...inputStyle,
             height: 160,
