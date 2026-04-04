@@ -14,16 +14,77 @@ type Mode = "login" | "register";
 const ff = "'MS Sans Serif', Tahoma, Geneva, Arial, sans-serif";
 
 const HELP_TEXT = (
-<>
-  <p>
-    If you have problems logging in, please contact the developers at:
-    <ul style={{ transform: "translateX(-20px)" }}> 
-      <li>weaveourtapestry@outlook.com</li>
-      <li><a href="https://github.com/PaullyScripter/weave-our-tapestry">Our repository</a></li>
-    </ul>
-  </p>
-</>
+  <>
+    <p>
+      If you have problems logging in, please contact the developers at:
+      <ul style={{ transform: "translateX(-20px)" }}>
+        <li>weaveourtapestry@outlook.com</li>
+        <li><a href="https://github.com/PaullyScripter/weave-our-tapestry">Our repository</a></li>
+      </ul>
+    </p>
+  </>
 );
+
+/* ── SVG Icons ─────────────────────────────────────────────────────────────── */
+
+function HelpIcon() {
+  return (
+    <svg viewBox="0 0 36 36" width={28} height={28} xmlns="http://www.w3.org/2000/svg">
+      {/* Circle border */}
+      <circle cx="18" cy="18" r="15" fill="#c0c0c0" stroke="#555" strokeWidth="1.5" />
+      {/* Question mark stem */}
+      <rect x="16" y="22" width="4" height="6" rx="1" fill="#000080" />
+      {/* Question mark dot */}
+      <rect x="16" y="30" width="4" height="3" rx="1" fill="#000080" />
+      {/* Question mark arc */}
+      <path d="M13 13 Q13 8 18 8 Q23 8 23 13 Q23 17 18 19 L18 21" fill="none" stroke="#000080" strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function BookIcon() {
+  return (
+    <svg viewBox="0 0 36 36" width={32} height={32} xmlns="http://www.w3.org/2000/svg">
+      {/* Left page */}
+      <rect x="3" y="5" width="14" height="26" rx="1" fill="#e8e0d0" stroke="#888" strokeWidth="1" />
+      {/* Right page */}
+      <rect x="19" y="5" width="14" height="26" rx="1" fill="#f5f0e8" stroke="#888" strokeWidth="1" />
+      {/* Spine */}
+      <rect x="15" y="4" width="6" height="28" rx="1" fill="#8b6914" stroke="#6b4f10" strokeWidth="1" />
+      {/* Left page lines */}
+      <line x1="7"  y1="12" x2="14" y2="12" stroke="#aaa" strokeWidth="1" />
+      <line x1="7"  y1="15" x2="14" y2="15" stroke="#aaa" strokeWidth="1" />
+      <line x1="7"  y1="18" x2="14" y2="18" stroke="#aaa" strokeWidth="1" />
+      <line x1="7"  y1="21" x2="14" y2="21" stroke="#aaa" strokeWidth="1" />
+      {/* Right page lines */}
+      <line x1="22" y1="12" x2="29" y2="12" stroke="#aaa" strokeWidth="1" />
+      <line x1="22" y1="15" x2="29" y2="15" stroke="#aaa" strokeWidth="1" />
+      <line x1="22" y1="18" x2="29" y2="18" stroke="#aaa" strokeWidth="1" />
+      <line x1="22" y1="21" x2="29" y2="21" stroke="#aaa" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function RegisterIcon() {
+  return (
+    <svg viewBox="0 0 36 36" width={32} height={32} xmlns="http://www.w3.org/2000/svg">
+      {/* Document */}
+      <rect x="5" y="3" width="20" height="26" rx="1" fill="#f5f0e8" stroke="#888" strokeWidth="1" />
+      {/* Fold corner */}
+      <polygon points="21,3 25,3 25,7 21,7" fill="#ddd" stroke="#888" strokeWidth="1" />
+      {/* Lines */}
+      <line x1="9"  y1="11" x2="21" y2="11" stroke="#aaa" strokeWidth="1.2" />
+      <line x1="9"  y1="14" x2="21" y2="14" stroke="#aaa" strokeWidth="1.2" />
+      <line x1="9"  y1="17" x2="18" y2="17" stroke="#aaa" strokeWidth="1.2" />
+      {/* Plus badge */}
+      <circle cx="27" cy="27" r="7" fill="#006600" stroke="#004400" strokeWidth="1" />
+      <rect x="24" y="26" width="6" height="2" rx="1" fill="white" />
+      <rect x="26" y="24" width="2" height="6" rx="1" fill="white" />
+    </svg>
+  );
+}
+
+/* ── Field ──────────────────────────────────────────────────────────────────── */
 
 function Field({ label, type, value, onChange }: { label: string; type: string; value: string; onChange: (v: string) => void }) {
   return (
@@ -42,6 +103,8 @@ function Field({ label, type, value, onChange }: { label: string; type: string; 
     </div>
   );
 }
+
+/* ── Help Dialog ─────────────────────────────────────────────────────────────── */
 
 function HelpDialog({ onClose }: { onClose: () => void }) {
   return (
@@ -76,7 +139,7 @@ function HelpDialog({ onClose }: { onClose: () => void }) {
         </div>
         <div style={{ padding: "16px 14px", display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <span style={{ fontSize: 28, flexShrink: 0 }}>❓</span>
+            <HelpIcon />
             <p style={{ margin: 0, lineHeight: 1.6, color: "#111" }}>{HELP_TEXT}</p>
           </div>
           <div style={{ display: "flex", justifyContent: "center" }}>
@@ -97,6 +160,8 @@ function HelpDialog({ onClose }: { onClose: () => void }) {
     </div>
   );
 }
+
+/* ── LoginWindow ──────────────────────────────────────────────────────────── */
 
 export function LoginWindow({ onLoginSuccess }: Props) {
   const [mode, setMode] = useState<Mode>("login");
@@ -156,6 +221,7 @@ export function LoginWindow({ onLoginSuccess }: Props) {
 
       {showHelp && <HelpDialog onClose={() => setShowHelp(false)} />}
 
+      {/* Header banner */}
       <div style={{ background: "#000080", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 16px", gap: 14, flexShrink: 0 }}>
         <WotIcon size={56} />
         <div>
@@ -167,6 +233,7 @@ export function LoginWindow({ onLoginSuccess }: Props) {
 
       <div style={{ borderTop: "2px solid #808080", borderBottom: "1px solid #fff", flexShrink: 0 }} />
 
+      {/* Mode tabs */}
       <div style={{ display: "flex", borderBottom: "1px solid #808080", flexShrink: 0 }}>
         {(["login", "register"] as Mode[]).map((m) => (
           <button
@@ -186,6 +253,7 @@ export function LoginWindow({ onLoginSuccess }: Props) {
         ))}
       </div>
 
+      {/* Form body */}
       <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", flex: 1 }}>
         {mode === "register" && (
           <Field label="Screen Name" type="text" value={username} onChange={setUsername} />
@@ -193,21 +261,19 @@ export function LoginWindow({ onLoginSuccess }: Props) {
         <Field label="Email" type="text" value={email} onChange={setEmail} />
         <Field label="Password" type="password" value={password} onChange={setPassword} />
 
+        {/* Error / success message — uses CSS classes for theme sync */}
         {error && (
-          <div style={{
-            fontFamily: ff, fontSize: 10, marginTop: 4,
-            color: isSuccess ? "#006600" : "#cc0000",
-            padding: "3px 6px", border: "1px solid",
-            borderColor: isSuccess ? "#006600" : "#cc0000",
-            background: isSuccess ? "#eeffee" : "#ffeeee",
-          }}>
+          <div className={isSuccess ? "wot-msg-success" : "wot-msg-error"}
+            style={{ fontFamily: ff, fontSize: 10, marginTop: 4, padding: "3px 6px" }}>
             {error}
           </div>
         )}
 
         <div style={{ borderTop: "1px solid #808080", margin: "12px 0 8px" }} />
 
+        {/* Action buttons */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+          {/* Help button */}
           <button
             type="button"
             onClick={() => setShowHelp(true)}
@@ -217,10 +283,11 @@ export function LoginWindow({ onLoginSuccess }: Props) {
               cursor: "pointer", padding: 0,
             }}
           >
-            <span style={{ fontSize: 22 }}>❓</span>
+            <HelpIcon />
             <span style={{ fontFamily: ff, fontSize: 10 }}>Help</span>
           </button>
 
+          {/* Sign In / Register button */}
           <button
             type="button"
             onClick={mode === "login" ? handleSignIn : handleRegister}
@@ -231,7 +298,7 @@ export function LoginWindow({ onLoginSuccess }: Props) {
               cursor: loading ? "default" : "pointer", opacity: loading ? 0.5 : 1, padding: 0,
             }}
           >
-            <span style={{ fontSize: 26 }}>📖</span>
+            {mode === "login" ? <BookIcon /> : <RegisterIcon />}
             <span style={{ fontFamily: ff, fontSize: 11, fontWeight: "bold" }}>
               {loading ? "..." : mode === "login" ? "Sign In" : "Register"}
             </span>
