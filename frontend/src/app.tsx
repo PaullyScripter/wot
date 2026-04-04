@@ -1492,7 +1492,7 @@ function AccessibilityContent({ user, onPrefsChange, local, setLocal }: {
         </div>
 
         {msg && (
-          <div className={msg.startsWith("saved!") ? "wot-msg-success" : "wot-msg-error"}
+          <div className={msg.endsWith("saved!") ? "wot-msg-success" : "wot-msg-error"}
             style={{ marginTop: 10, padding: "4px 8px", fontFamily: ff, fontSize: 11 }}>
             {msg}
           </div>
