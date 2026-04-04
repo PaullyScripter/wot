@@ -42,13 +42,7 @@ function formatViews(n: number): string {
 function formatDate(iso?: string | null): string {
   if (!iso) return "—";
   const d = new Date(iso);
-  return d.toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
 let winCounter = 0;
@@ -100,14 +94,15 @@ const GRID_ROW = 90;   // px per grid row
 const GRID_OFFSET_X = 16;
 const GRID_OFFSET_Y = 16;
 
-type IconId = "account" | "post" | "myspace" | "wot" | "hometown";
+type IconId = "account" | "post" | "myspace" | "wot" | "hometown" | "accessibility";
 
 const DEFAULT_POSITIONS: Record<IconId, { col: number; row: number }> = {
-  account:  { col: 0, row: 0 },
-  post:     { col: 1, row: 0 },
-  myspace:  { col: 1, row: 1 },
-  wot:      { col: 0, row: 1 },
-  hometown: { col: 0, row: 2 },
+  account:       { col: 0, row: 0 },
+  post:          { col: 1, row: 0 },
+  myspace:       { col: 1, row: 1 },
+  wot:           { col: 0, row: 1 },
+  hometown:      { col: 0, row: 2 },
+  accessibility: { col: 1, row: 2 },
 };
 
 function snapToGrid(x: number, y: number): { col: number; row: number } {
@@ -338,27 +333,27 @@ function HometownContent() {
         {!loading && topStories.length === 0 && <div style={{ padding: 16, color: "#666" }}>No stories found.</div>}
         {!loading && topStories.map((story, i) => (
           <div key={story.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px", borderBottom: "1px solid #e0e0e0", background: i === 0 ? "#fffbf0" : "white" }}>
-            <div style={{ fontSize: 20, flexShrink: 0, lineHeight: 1 }}>{medals[i]}</div>
+            <div style={{ width: 20, height: 20, flexShrink: 0, background: ["#c04000","#808080","#a06030","#606060","#505050"][i], color: "white", fontWeight: "bold", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #000" }}>{medals[i]}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: "bold", color: "#000080", fontSize: 12, marginBottom: 3 }}>{story.title}</div>
 
-              {/* Metadata row */}
+              {/* Metadata row — no emojis */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: "2px 12px", color: "#555", fontSize: 10, marginBottom: 4 }}>
-                {story.author_name && <span> {story.author_name}</span>}
-                {story.country    && <span> {story.country}</span>}
-                {story.culture    && <span> {story.culture}</span>}
-                {story.category   && <span> {story.category}</span>}
-                {story.year       && <span> {story.year}</span>}
+                {story.author_name && <span>{story.author_name}</span>}
+                {story.country    && <span>{story.country}</span>}
+                {story.culture    && <span>{story.culture}</span>}
+                {story.category   && <span>[{story.category}]</span>}
+                {story.year       && <span>{story.year}</span>}
               </div>
 
               <div style={{ fontSize: 11, color: "#333", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}>{story.text}</div>
 
-              {/* Stats row */}
+              {/* Stats row — no emojis */}
               <div style={{ marginTop: 5, fontSize: 10, color: "#666", display: "flex", gap: 10, alignItems: "center" }}>
                 <span>{formatViews(story.views)} views</span>
                 <span>{story.like_count ?? 0} likes</span>
                 {story.created_at && <span>{formatDate(story.created_at)}</span>}
-                {i === 0 && <span style={{ color: "#c04000", fontWeight: "bold", marginLeft: "auto" }}>🔥 Most Read</span>}
+                {i === 0 && <span style={{ color: "#c04000", fontWeight: "bold", marginLeft: "auto" }}>Most Read</span>}
               </div>
             </div>
           </div>
@@ -434,7 +429,7 @@ function AdPopup({ ad, onClose, zIndex, onFocus }: { ad: AdData; onClose: () => 
               </div>
             )}
             <div style={{ fontFamily: titleFont, fontSize: 16, fontStyle: "italic", color: "#fff", textShadow: "1px 1px 3px rgba(0,0,0,0.6)" }}>
-              👁 {formatViews(ad.story.views)} views
+              {formatViews(ad.story.views)} views
             </div>
           </>
         ) : (
@@ -454,7 +449,7 @@ function AdPopup({ ad, onClose, zIndex, onFocus }: { ad: AdData; onClose: () => 
             )}
             {ad.story.author_name && (
               <div style={{ fontFamily: titleFont, fontSize: 12, fontStyle: "italic", color: "rgba(255,255,255,0.75)" }}>
-                uploaded by {ad.story.author_name}
+                by {ad.story.author_name}
               </div>
             )}
           </>
@@ -474,28 +469,29 @@ function AdPopup({ ad, onClose, zIndex, onFocus }: { ad: AdData; onClose: () => 
 }
 
 // ── Splash Screen ────────────────────────────────────────────────────────────
+
 const BOOT_LINES = [
   { text: "WOT BIOS v1.0  Copyright (C) 2026 WOT Online Inc.", delay: 0 },
-  { text: "", delay: 80 },
-  { text: "CPU: WOT-686 @ 133MHz", delay: 150 },
-  { text: "Memory Test: 16384K OK", delay: 300 },
-  { text: "", delay: 420 },
-  { text: "Detecting Primary Master... ST31276A", delay: 550 },
-  { text: "Detecting Primary Slave ... None", delay: 720 },
-  { text: "", delay: 850 },
-  { text: "WOT Online Network Adapter... found", delay: 980 },
-  { text: "Loading story database........... OK", delay: 1150 },
-  { text: "Initializing culture engine....... OK", delay: 1320 },
-  { text: "", delay: 1450 },
-  { text: "Starting WOT Online v1.0", delay: 1580 },
-  { text: "", delay: 1700 },
-  { text: "██████████████████████  100%", delay: 1850 },
-  { text: "", delay: 2050 },
-  { text: "Welcome to Weave Our Tapestry.", delay: 2200 },
-  { text: "Connecting cultures, one story at a time.", delay: 2400 },
+  { text: "", delay: 150 },
+  { text: "CPU: WOT-686 @ 133MHz", delay: 300 },
+  { text: "Memory Test: 16384K OK", delay: 600 },
+  { text: "", delay: 800 },
+  { text: "Detecting Primary Master... ST31276A", delay: 1000 },
+  { text: "Detecting Primary Slave ... None", delay: 1300 },
+  { text: "", delay: 1550 },
+  { text: "WOT Online Network Adapter... found", delay: 1750 },
+  { text: "Loading story database........... OK", delay: 2100 },
+  { text: "Initializing culture engine....... OK", delay: 2450 },
+  { text: "", delay: 2700 },
+  { text: "Starting WOT Online v1.0", delay: 2900 },
+  { text: "", delay: 3100 },
+  { text: "██████████████████████  100%", delay: 3300 },
+  { text: "", delay: 3700 },
+  { text: "Welcome to Weave Our Tapestry.", delay: 3900 },
+  { text: "Connecting cultures, one story at a time.", delay: 4150 },
 ];
 
-const READY_DELAY = 2700;
+const READY_DELAY = 4800; // when the "ready" prompt appears // ms before auto-dismiss
 
 function SplashScreen({ onDone }: { onDone: () => void }) {
   const [visibleLines, setVisibleLines] = useState<string[]>([]);
@@ -699,14 +695,14 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
             onClick={resetForm}
             style={{ fontFamily: ff, fontSize: 11, background: "#c0c0c0", border: "2px solid", borderColor: "#fff #808080 #808080 #fff", padding: "4px 12px", cursor: "pointer" }}
           >
-            ✏️ Write another
+            Write another
           </button>
           <button
             type="button"
             onClick={() => onViewPosted(posted)}
             style={{ fontFamily: ff, fontSize: 11, background: "#c0c0c0", border: "2px solid", borderColor: "#fff #808080 #808080 #fff", padding: "4px 12px", cursor: "pointer" }}
           >
-            📖 See my post
+            See my post
           </button>
         </div>
       </div>
@@ -767,7 +763,7 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
-          placeholder="the story itself"
+          placeholder="the story itself..."
           style={{
             ...inputStyle,
             height: 160,
@@ -798,7 +794,7 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
             opacity: loading ? 0.6 : 1, fontWeight: "bold",
           }}
         >
-          {loading ? "Posting..." : "📨 Post Story"}
+          {loading ? "Posting..." : "Post Story"}
         </button>
       </div>
     </div>
@@ -1001,6 +997,525 @@ function MySpaceContent({ user, onOpenStory }: { user: SessionUser; onOpenStory:
   );
 }
 
+// ── Accessibility / Reading Preferences ──────────────────────────────────────
+
+type Prefs = {
+  font_size: "small" | "medium" | "large" | "xlarge";
+  font_weight: "normal" | "bold";
+  line_spacing: "normal" | "relaxed" | "loose";
+  letter_spacing: "normal" | "wide";
+  theme: "original" | "dark" | "high_contrast";
+};
+
+const DEFAULT_PREFS: Prefs = {
+  font_size: "medium",
+  font_weight: "normal",
+  line_spacing: "normal",
+  letter_spacing: "normal",
+  theme: "original",
+};
+
+const FONT_SIZE_MAP   = { small: "10px", medium: "12px", large: "15px", xlarge: "19px" };
+const LINE_SPACING_MAP   = { normal: 1.5, relaxed: 1.9, loose: 2.4 };
+const LETTER_SPACING_MAP = { normal: "0px", wide: "0.08em" };
+
+// Inject/update a <style> tag with CSS vars derived from prefs
+function applyPrefsToDOM(p: Prefs) {
+  const id = "wot-prefs-style";
+  let el = document.getElementById(id) as HTMLStyleElement | null;
+  if (!el) {
+    el = document.createElement("style");
+    el.id = id;
+    document.head.appendChild(el);
+  }
+
+  const isDark = p.theme === "dark";
+  const isHC   = p.theme === "high_contrast";
+
+  const desktopBg = isDark ? "#1a1a1a" : isHC ? "#000"    : "#008080";
+  const windowBg  = isDark ? "#2d2d2d" : isHC ? "#111"    : "#c0c0c0";
+  const contentBg = isDark ? "#1e1e1e" : isHC ? "#000"    : "#f0f0f0";
+  const inputBg   = isDark ? "#141414" : isHC ? "#000"    : "#fff";
+  const whiteBg   = isDark ? "#252525" : isHC ? "#111"    : "#fff";
+  const cardBg    = isDark ? "#252525" : isHC ? "#111"    : "#e8e8e8";
+  const textColor = isDark ? "#e0e0e0" : isHC ? "#ffff00" : "#000";
+  const subColor  = isDark ? "#aaaaaa" : isHC ? "#cccc00" : "#555";
+  const linkColor = isDark ? "#88aaff" : isHC ? "#ffff00" : "#0000cc";
+  const borderCol = isDark ? "#555"    : isHC ? "#ffff00" : "#808080";
+  const btnBorder = isDark
+    ? "#666 #333 #333 #666"
+    : isHC ? "#ffff00 #ffff00 #ffff00 #ffff00"
+    : "#fff #808080 #808080 #fff";
+  const titleGrad = isDark
+    ? "linear-gradient(90deg,#111 0%,#333 60%,#333 80%,#111 100%)"
+    : isHC ? "#000"
+    : "linear-gradient(90deg,#000080 0%,#1084d0 60%,#1084d0 80%,#000080 100%)";
+  const titleColor = isDark ? "#cccccc" : isHC ? "#ffff00" : "#fff";
+
+  const fs = FONT_SIZE_MAP[p.font_size];
+  const lh = LINE_SPACING_MAP[p.line_spacing];
+  const ls = LETTER_SPACING_MAP[p.letter_spacing];
+  const fw = p.font_weight;
+
+  // ── Theme rules (only when not original) ────────────────────────────────
+  // IMPORTANT: React converts hex colours to rgb() in the DOM style attribute,
+  // so selectors must match BOTH the hex form and the rgb() form.
+  const bg = (hex: string, rgb: string, val: string) =>
+    `.window-content [style*="background: ${hex}"],
+     .window-content [style*="background:${hex}"],
+     .window-content [style*="background: ${rgb}"],
+     .window-content [style*="background:${rgb}"] { background: ${val} !important; }`;
+
+  const themeCSS = (isDark || isHC) ? `
+    html, body, #root { background-color: ${desktopBg} !important; }
+
+    /* ── Window chrome ── */
+    .window-tab { background: ${windowBg} !important; border-color: ${isHC ? "#ffff00" : "#000"} !important; }
+    .window-titlebar { background: ${titleGrad} !important; color: ${titleColor} !important; border-bottom-color: ${isHC ? "#ffff00" : "#000"} !important; }
+    .window-titlebar button { background: ${windowBg} !important; color: ${textColor} !important; border-color: ${btnBorder} !important; }
+
+    /* ── Content area ── */
+    .window-content { background: ${contentBg} !important; }
+
+    /* ── Text colour: everything except gradient banners ── */
+    .window-content * { color: ${textColor} !important; }
+    .window-content [style*="linear-gradient"],
+    .window-content [style*="linear-gradient"] * { color: #fff !important; }
+
+    /* ── Backgrounds (hex + rgb both) ── */
+    ${bg("white",        "rgb(255, 255, 255)", whiteBg)}
+    ${bg("#fff",         "rgb(255, 255, 255)", whiteBg)}
+    ${bg("#f5f5f5",      "rgb(245, 245, 245)", isDark ? "#1a1a1a" : "#111")}
+    ${bg("#f0f0f0",      "rgb(240, 240, 240)", whiteBg)}
+    ${bg("#e8e8e8",      "rgb(232, 232, 232)", cardBg)}
+    ${bg("#c0c0c0",      "rgb(192, 192, 192)", windowBg)}
+    ${bg("#fffbf0",      "rgb(255, 251, 240)", isDark ? "#2a2520" : "#1a1a00")}
+
+    /* ── Inputs / textareas / selects ── */
+    .window-content input,
+    .window-content textarea,
+    .window-content select {
+      background: ${inputBg} !important;
+      color: ${textColor} !important;
+      border-color: ${borderCol} !important;
+    }
+
+    /* ── Buttons ── */
+    .window-content button[type="button"] {
+      background: ${windowBg} !important;
+      color: ${textColor} !important;
+      border-color: ${btnBorder} !important;
+    }
+    /* Active OptBtn — blue with white text */
+    .window-content button[type="button"][style*="background: #000080"],
+    .window-content button[type="button"][style*="background:#000080"],
+    .window-content button[type="button"][style*="background: rgb(0, 0, 128)"] {
+      background: ${isDark ? "#3355bb" : "#0000cc"} !important;
+      color: #fff !important;
+      border-color: #fff #000 #000 #fff !important;
+    }
+
+    /* ── SearchPanel card left divider ── */
+    .window-content [style*="borderRight: 2px solid rgb(153"],
+    .window-content [style*="borderRight: 2px solid #999"] {
+      border-right-color: ${borderCol} !important;
+      background: ${cardBg} !important;
+    }
+
+    /* ── MySpace table ── */
+    .window-content th { background: ${windowBg} !important; }
+    .window-content tbody tr { background: ${contentBg} !important; }
+    .window-content tbody tr[style*="rgb(0, 0, 128)"],
+    .window-content tbody tr[style*="#000080"] { background: #000080 !important; }
+    .window-content tbody tr[style*="rgb(0, 0, 128)"] *,
+    .window-content tbody tr[style*="#000080"] * { color: #fff !important; }
+
+    /* ── Links ── */
+    .window-content a { color: ${linkColor} !important; }
+
+    /* ── Accessibility status messages ── */
+    .wot-msg-success {
+      background: ${isDark ? "#0a2a0a" : "#001a00"} !important;
+      border-color: ${isDark ? "#44aa44" : "#ffff00"} !important;
+      color: ${isDark ? "#88dd88" : "#aaff00"} !important;
+    }
+    .wot-msg-error {
+      background: ${isDark ? "#2a0a0a" : "#1a0000"} !important;
+      border-color: ${isDark ? "#cc4444" : "#ffff00"} !important;
+      color: ${isDark ? "#ff8888" : "#ff4444"} !important;
+    }
+
+    /* ── SearchPanel ── */
+    .sp-root { background: ${windowBg} !important; }
+    .sp-search-input {
+      background: ${inputBg} !important;
+      color: ${textColor} !important;
+      border-color: ${borderCol} !important;
+    }
+    .sp-status-text { color: ${subColor} !important; }
+    .sp-status-text.sp-error { color: ${isDark ? "#ff6666" : "#ff4444"} !important; }
+    .sp-card {
+      background: ${cardBg} !important;
+      border-color: ${isHC ? "#ffff00" : isDark ? "#555 #333 #333 #555" : "#fff #808080 #808080 #fff"} !important;
+    }
+    .sp-card-meta {
+      background: ${isDark ? "#2a2a2a" : isHC ? "#0a0a0a" : "#e0e0e0"} !important;
+      border-right-color: ${borderCol} !important;
+    }
+    .sp-card-title { color: ${textColor} !important; }
+    .sp-card-detail { color: ${textColor} !important; }
+    .sp-card-date { color: ${subColor} !important; }
+    .sp-card-stats { color: ${subColor} !important; }
+    .sp-read-btn {
+      background: ${windowBg} !important;
+      color: ${textColor} !important;
+      border-color: ${btnBorder} !important;
+    }
+    .sp-card-preview {
+      background: ${isDark ? "#222222" : isHC ? "#000000" : "#e8e8e8"} !important;
+      color: ${textColor} !important;
+    }
+
+    /* ── Scrollbars ── */
+    ::-webkit-scrollbar-track  { background: ${isDark ? "#111" : "#000"} !important; }
+    ::-webkit-scrollbar-thumb  { background: ${windowBg} !important; border-color: ${isHC ? "#ffff00" : "#000"} !important; }
+    ::-webkit-scrollbar-button { background: ${windowBg} !important; border-color: ${isHC ? "#ffff00" : "#000"} !important; }
+  ` : "";
+
+  // ── Typography rules (only what changed from default) ───────────────────
+  // ONLY target story text and inputs — never layout containers
+  const typoCSS = `
+    /* Story reader — full reading prefs */
+    .wot-story-text {
+      font-size: ${fs} !important;
+      font-weight: ${fw} !important;
+      line-height: ${lh} !important;
+      letter-spacing: ${ls} !important;
+      ${isDark || isHC ? `color: ${textColor} !important;` : ""}
+    }
+
+    /* Inputs/textareas follow font size */
+    .window-content input,
+    .window-content textarea,
+    .window-content select {
+      font-size: ${fs} !important;
+    }
+  `;
+
+  el.textContent = themeCSS + typoCSS;
+}
+
+// Inject base (non-theme) styles once
+(function injectBaseStyles() {
+  const id = "wot-base-style";
+  if (document.getElementById(id)) return;
+  const el = document.createElement("style");
+  el.id = id;
+  el.textContent = `
+    /* ── Status messages (login + accessibility) ── */
+    .wot-msg-success {
+      background: #eeffee !important;
+      border: 1px solid #006600 !important;
+      color: #006600 !important;
+    }
+    .wot-msg-error {
+      background: #ffeeee !important;
+      border: 1px solid #cc0000 !important;
+      color: #cc0000 !important;
+    }
+
+    /* ── SearchPanel base styles ── */
+    .sp-root {
+      padding: 8px;
+      min-height: 100%;
+      box-sizing: border-box;
+      background: #c0c0c0;
+      font-family: 'MS Sans Serif', Tahoma, Geneva, Arial, sans-serif;
+    }
+    .sp-search-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 4px 8px;
+      font-family: 'MS Sans Serif', Tahoma, Geneva, Arial, sans-serif;
+      font-size: 12px;
+      border: 2px solid;
+      border-color: #808080 #fff #fff #808080;
+      background: white;
+      color: #000;
+      outline: none;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .sp-status-text {
+      font-family: 'Courier Prime', monospace;
+      font-size: 13px;
+      color: #444;
+      padding: 8px 0;
+    }
+    .sp-status-text.sp-error { color: #cc0000; }
+    .sp-card {
+      border: 2px solid;
+      border-color: #fff #808080 #808080 #fff;
+      margin-bottom: 10px;
+      background: #e8e8e8;
+      display: flex;
+      gap: 0;
+    }
+    .sp-card-meta {
+      min-width: 210px;
+      max-width: 240px;
+      padding: 10px 14px;
+      border-right: 2px solid #999;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      background: #e0e0e0;
+    }
+    .sp-card-title {
+      font-family: 'IM Fell English', Georgia, serif;
+      font-size: 20px;
+      font-weight: 700;
+      text-decoration: underline;
+      display: block;
+      margin-bottom: 4px;
+      line-height: 1.2;
+      color: #111;
+    }
+    .sp-card-detail {
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px;
+      color: #222;
+    }
+    .sp-card-detail-val { text-decoration: underline; }
+    .sp-card-date {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      color: #666;
+    }
+    .sp-card-stats {
+      margin-top: 8px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sp-read-btn {
+      margin-left: auto;
+      font-family: 'MS Sans Serif', Tahoma, Geneva, Arial, sans-serif;
+      font-size: 11px;
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #fff #808080 #808080 #fff;
+      padding: 2px 10px;
+      cursor: pointer;
+    }
+    .sp-card-preview {
+      flex: 1;
+      padding: 10px 14px;
+      font-family: 'IM Fell English', Georgia, serif;
+      font-size: 14px;
+      line-height: 1.65;
+      color: #111;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 8;
+      -webkit-box-orient: vertical;
+      background: #e8e8e8;
+    }
+  `;
+  document.head.appendChild(el);
+})();
+
+function HumanIcon() {
+  return (
+    <svg viewBox="0 0 36 36" width={36} height={36} xmlns="http://www.w3.org/2000/svg">
+      {/* Head */}
+      <circle cx="18" cy="8" r="4.5" fill="#d0d0d0" stroke="#555" strokeWidth="1.2" />
+      {/* Body */}
+      <rect x="13" y="14" width="10" height="11" rx="2" fill="#c0c0c0" stroke="#555" strokeWidth="1.1" />
+      {/* Left arm */}
+      <line x1="13" y1="16" x2="7" y2="22" stroke="#c0c0c0" strokeWidth="3" strokeLinecap="round" />
+      {/* Right arm */}
+      <line x1="23" y1="16" x2="29" y2="22" stroke="#c0c0c0" strokeWidth="3" strokeLinecap="round" />
+      {/* Left leg */}
+      <line x1="15" y1="25" x2="13" y2="33" stroke="#c0c0c0" strokeWidth="3" strokeLinecap="round" />
+      {/* Right leg */}
+      <line x1="21" y1="25" x2="23" y2="33" stroke="#c0c0c0" strokeWidth="3" strokeLinecap="round" />
+      {/* outline strokes on limbs */}
+      <line x1="13" y1="16" x2="7" y2="22" stroke="#555" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="23" y1="16" x2="29" y2="22" stroke="#555" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="15" y1="25" x2="13" y2="33" stroke="#555" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="21" y1="25" x2="23" y2="33" stroke="#555" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function OptionRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, fontFamily: ff, fontSize: 11 }}>
+      <span style={{ width: 110, flexShrink: 0, fontWeight: "bold" }}>{label}</span>
+      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>{children}</div>
+    </div>
+  );
+}
+
+function OptBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        fontFamily: ff, fontSize: 11,
+        background: active ? "#000080" : "#c0c0c0",
+        color: active ? "#ffffff" : "#000",
+        border: "2px solid",
+        borderColor: active ? "#ffffff #000040 #000040 #ffffff" : "#fff #808080 #808080 #fff",
+        padding: "2px 10px", cursor: "pointer", minWidth: 52,
+        fontWeight: active ? "bold" : "normal",
+        outline: active ? "1px solid #000080" : "none",
+        outlineOffset: "1px",
+      }}
+    >
+      {active ? "✓ " : ""}{children}
+    </button>
+  );
+}
+
+function AccessibilityContent({ user, onPrefsChange, local, setLocal }: {
+  user: SessionUser | null;
+  onPrefsChange: (p: Prefs) => void;
+  local: Prefs;
+  setLocal: React.Dispatch<React.SetStateAction<Prefs>>;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  // Real-time preview: apply to DOM as user tweaks
+  useEffect(() => { applyPrefsToDOM(local); }, [local]);
+
+  function set<K extends keyof Prefs>(key: K, val: Prefs[K]) {
+    setLocal(prev => ({ ...prev, [key]: val }));
+  }
+
+  async function handleSave() {
+    if (!user) return;
+    setSaving(true); setMsg("");
+    try {
+      const res = await fetch(`${API_BASE}/api/users/${user.userId}/reading-preferences`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(local),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      onPrefsChange(local);
+      setMsg("✅ Settings saved!");
+    } catch {
+      setMsg("❌ Failed to save.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function handleReset() {
+    setLocal({ ...DEFAULT_PREFS });
+  }
+
+  const previewText = "The quick brown fox jumps over the lazy dog.";
+
+  return (
+    <div style={{ fontFamily: ff, fontSize: 11, height: "100%", display: "flex", flexDirection: "column" }}>
+      {/* Header */}
+      <div style={{ background: "linear-gradient(to right, #000080, #4040c0)", color: "white", padding: "6px 12px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        <HumanIcon />
+        <div>
+          <div style={{ fontSize: 12, fontWeight: "bold" }}>Accessibility Settings</div>
+          <div style={{ fontSize: 10, opacity: 0.8 }}>{user ? `Signed in as ${user.username} — settings will be saved` : "Guest mode — settings reset on refresh"}</div>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflow: "auto", padding: "12px 14px" }}>
+        <OptionRow label="Font Size">
+          {(["small","medium","large","xlarge"] as Prefs["font_size"][]).map(v => (
+            <OptBtn key={v} active={local.font_size === v} onClick={() => set("font_size", v)}>
+              {v.charAt(0).toUpperCase() + v.slice(1)}
+            </OptBtn>
+          ))}
+        </OptionRow>
+
+        <OptionRow label="Font Weight">
+          {(["normal","bold"] as Prefs["font_weight"][]).map(v => (
+            <OptBtn key={v} active={local.font_weight === v} onClick={() => set("font_weight", v)}>
+              {v.charAt(0).toUpperCase() + v.slice(1)}
+            </OptBtn>
+          ))}
+        </OptionRow>
+
+        <OptionRow label="Line Spacing">
+          {(["normal","relaxed","loose"] as Prefs["line_spacing"][]).map(v => (
+            <OptBtn key={v} active={local.line_spacing === v} onClick={() => set("line_spacing", v)}>
+              {v.charAt(0).toUpperCase() + v.slice(1)}
+            </OptBtn>
+          ))}
+        </OptionRow>
+
+        <OptionRow label="Letter Spacing">
+          {(["normal","wide"] as Prefs["letter_spacing"][]).map(v => (
+            <OptBtn key={v} active={local.letter_spacing === v} onClick={() => set("letter_spacing", v)}>
+              {v.charAt(0).toUpperCase() + v.slice(1)}
+            </OptBtn>
+          ))}
+        </OptionRow>
+
+        <OptionRow label="Theme">
+          {(["original","dark","high_contrast"] as Prefs["theme"][]).map(v => (
+            <OptBtn key={v} active={local.theme === v} onClick={() => set("theme", v)}>
+              {v === "high_contrast" ? "High Contrast" : v.charAt(0).toUpperCase() + v.slice(1)}
+            </OptBtn>
+          ))}
+        </OptionRow>
+
+        {/* Live preview box */}
+        <div style={{ marginTop: 12, border: "2px solid #808080", padding: "10px 12px", background: "#fff" }}>
+          <div style={{ fontSize: 10, color: "#666", marginBottom: 6, fontFamily: ff }}>Live Preview</div>
+          <div style={{
+            fontSize: FONT_SIZE_MAP[local.font_size],
+            fontWeight: local.font_weight,
+            lineHeight: LINE_SPACING_MAP[local.line_spacing],
+            letterSpacing: LETTER_SPACING_MAP[local.letter_spacing],
+            color: "#111",
+            fontFamily: ff,
+          }}>
+            {previewText}
+          </div>
+        </div>
+
+        {msg && (
+          <div className={msg.startsWith("✅") ? "wot-msg-success" : "wot-msg-error"}
+            style={{ marginTop: 10, padding: "4px 8px", fontFamily: ff, fontSize: 11 }}>
+            {msg}
+          </div>
+        )}
+      </div>
+
+      {/* Footer buttons */}
+      <div style={{ borderTop: "1px solid #808080", padding: "8px 12px", display: "flex", justifyContent: "space-between", flexShrink: 0, background: "#c0c0c0" }}>
+        <button type="button" onClick={handleReset} style={{ fontFamily: ff, fontSize: 11, background: "#c0c0c0", border: "2px solid", borderColor: "#fff #808080 #808080 #fff", padding: "3px 16px", cursor: "pointer" }}>
+          Reset to Default
+        </button>
+        {user ? (
+          <button type="button" onClick={handleSave} disabled={saving} style={{ fontFamily: ff, fontSize: 11, background: "#c0c0c0", border: "2px solid", borderColor: "#fff #808080 #808080 #fff", padding: "3px 20px", cursor: "pointer", fontWeight: "bold" }}>
+            {saving ? "Saving..." : "Save Settings"}
+          </button>
+        ) : (
+          <span style={{ fontFamily: ff, fontSize: 10, color: "#666", alignSelf: "center" }}>Log in to save</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── App ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
@@ -1068,8 +1583,37 @@ export default function App() {
   const about = useWin("about", setZOrder, bringToFront);
   const post = useWin("post", setZOrder, bringToFront);
   const myspace = useWin("myspace", setZOrder, bringToFront);
+  const accessibility = useWin("accessibility", setZOrder, bringToFront);
 
-  const winMap: Record<string, { open: boolean; minimized: boolean; openWin: () => void; closeWin: () => void; minimizeWin: () => void }> = { search, hometown, login, account, about, post, myspace };
+  const winMap: Record<string, { open: boolean; minimized: boolean; openWin: () => void; closeWin: () => void; minimizeWin: () => void }> = { search, hometown, login, account, about, post, myspace, accessibility };
+
+  // ── Preferences ──
+  const [prefs, setPrefs] = useState<Prefs>({ ...DEFAULT_PREFS });
+  const [localPrefs, setLocalPrefs] = useState<Prefs>({ ...DEFAULT_PREFS });
+
+  // Apply prefs to DOM on mount and whenever they change
+  useEffect(() => { applyPrefsToDOM(prefs); }, [prefs]);
+
+  // Load saved prefs from API when user logs in
+  useEffect(() => {
+    if (!currentUser) return;
+    fetch(`${API_BASE}/api/users/${currentUser.userId}/reading-preferences`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data) {
+          const loaded: Prefs = {
+            font_size:      data.font_size      ?? DEFAULT_PREFS.font_size,
+            font_weight:    data.font_weight    ?? DEFAULT_PREFS.font_weight,
+            line_spacing:   data.line_spacing   ?? DEFAULT_PREFS.line_spacing,
+            letter_spacing: data.letter_spacing ?? DEFAULT_PREFS.letter_spacing,
+            theme:          data.theme          ?? DEFAULT_PREFS.theme,
+          };
+          setPrefs(loaded);
+          setLocalPrefs(loaded);
+        }
+      })
+      .catch(() => {});
+  }, [currentUser]);
 
   const [showSplash, setShowSplash] = useState(() => {
     if (sessionStorage.getItem("wot_booted")) return false;
@@ -1148,6 +1692,7 @@ export default function App() {
     ...(account.open ? [{ id: "account", title: currentUser?.username ?? "My Account", icon: "🖥️", isMinimized: account.minimized }] : []),
     ...(post.open ? [{ id: "post", title: "Post a Story", icon: "✍️", isMinimized: post.minimized }] : []),
     ...(myspace.open ? [{ id: "myspace", title: `My Space - ${currentUser?.username ?? ""}`, icon: "📁", isMinimized: myspace.minimized }] : []),
+    ...(accessibility.open ? [{ id: "accessibility", title: "Accessibility", icon: "♿", isMinimized: accessibility.minimized }] : []),
     ...(about.open ? [{ id: "about", title: "WOT Online", icon: "📋", isMinimized: about.minimized }] : []),
     ...(search.open ? [{ id: "search", title: "Weave Our Tapestry", icon: "📖", isMinimized: search.minimized }] : []),
     ...(hometown.open ? [{ id: "hometown", title: "Our Hometown", icon: "🏠", isMinimized: hometown.minimized }] : []),
@@ -1162,11 +1707,12 @@ export default function App() {
 
       {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
 
-      <DraggableIcon id="account" label={currentUser ? currentUser.username : "My Account"} onClick={handleAccountOpen} renderIcon={() => <PcIcon />} position={iconPositions.account} onDrop={handleIconDrop} allPositions={iconPositions} />
-      <DraggableIcon id="post"    label="Post a Story" onClick={handlePostOpen}    renderIcon={() => <PenIcon />}            position={iconPositions.post}    onDrop={handleIconDrop} allPositions={iconPositions} />
-      <DraggableIcon id="myspace" label="My Space"     onClick={handleMySpaceOpen} renderIcon={() => <FolderExplorerIcon />} position={iconPositions.myspace} onDrop={handleIconDrop} allPositions={iconPositions} />
-      <DraggableIcon id="wot"     label="WOT"          onClick={search.openWin}    renderIcon={() => <WotIcon size={36} />}  position={iconPositions.wot}     onDrop={handleIconDrop} allPositions={iconPositions} />
-      <DraggableIcon id="hometown" label={"Our Hometown"} onClick={hometown.openWin} renderIcon={() => <HometownIcon />}    position={iconPositions.hometown} onDrop={handleIconDrop} allPositions={iconPositions} />
+      <DraggableIcon id="account"       label={currentUser ? currentUser.username : "My Account"} onClick={handleAccountOpen}       renderIcon={() => <PcIcon />}             position={iconPositions.account}       onDrop={handleIconDrop} allPositions={iconPositions} />
+      <DraggableIcon id="post"          label="Post a Story"  onClick={handlePostOpen}          renderIcon={() => <PenIcon />}           position={iconPositions.post}          onDrop={handleIconDrop} allPositions={iconPositions} />
+      <DraggableIcon id="myspace"       label="My Space"      onClick={handleMySpaceOpen}       renderIcon={() => <FolderExplorerIcon />} position={iconPositions.myspace}       onDrop={handleIconDrop} allPositions={iconPositions} />
+      <DraggableIcon id="wot"           label="WOT"           onClick={search.openWin}          renderIcon={() => <WotIcon size={36} />} position={iconPositions.wot}           onDrop={handleIconDrop} allPositions={iconPositions} />
+      <DraggableIcon id="hometown"      label={"Our Hometown"} onClick={hometown.openWin}       renderIcon={() => <HometownIcon />}      position={iconPositions.hometown}      onDrop={handleIconDrop} allPositions={iconPositions} />
+      <DraggableIcon id="accessibility" label="Accessibility"  onClick={accessibility.openWin}  renderIcon={() => <HumanIcon />}         position={iconPositions.accessibility} onDrop={handleIconDrop} allPositions={iconPositions} />
 
       {login.open && (
         <Window title="My Account" initialX={cx - 175} initialY={cy - 220} initialWidth={350} initialHeight={420}
@@ -1222,18 +1768,18 @@ export default function App() {
             {/* Title header */}
             <div style={{ background: "linear-gradient(to right, #000080, #4040c0)", color: "white", padding: "8px 12px", flexShrink: 0, marginBottom: 0 }}>
               <div style={{ fontSize: 14, fontWeight: "bold", marginBottom: 2 }}>{story.title}</div>
-              <div style={{ fontSize: 10, opacity: 0.85 }}>uploaded by {story.author_name || "Unknown"}</div>
+              <div style={{ fontSize: 10, opacity: 0.85 }}>by {story.author_name || "Unknown"}</div>
             </div>
 
             {/* Metadata strip */}
-            <div style={{ background: "#e8e8e8", borderBottom: "1px solid #c0c0c0", padding: "5px 12px", display: "flex", flexWrap: "wrap", gap: "10px 20px", flexShrink: 0 }}>
+            <div style={{ background: "#e8e8e8", borderBottom: "1px solid #c0c0c0", padding: "5px 12px", display: "flex", flexWrap: "wrap", gap: "10px 20px", flexShrink: 0, fontSize: 11 }}>
               {story.country   && <span><b>Country:</b> {story.country}</span>}
               {story.culture   && <span><b>Culture:</b> {story.culture}</span>}
               {story.category  && <span><b>Category:</b> {story.category}</span>}
               {story.year      && <span><b>Year:</b> {story.year}</span>}
-              <span style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
-                <span>View(s): {formatViews(story.views)}</span>
-                <span>Like(s): {story.like_count ?? 0}</span>
+              <span style={{ marginLeft: "auto", display: "flex", gap: 12, color: "#555" }}>
+                <span>{formatViews(story.views)} views</span>
+                <span>{story.like_count ?? 0} likes</span>
               </span>
             </div>
 
@@ -1244,7 +1790,7 @@ export default function App() {
             </div>
 
             {/* Story text */}
-            <div style={{ flex: 1, overflow: "auto", padding: "12px", lineHeight: 1.7, color: "#111", whiteSpace: "pre-wrap", fontSize: 11 }}>
+            <div className="wot-story-text" style={{ flex: 1, overflow: "auto", padding: "12px", color: "#111", whiteSpace: "pre-wrap" }}>
               {story.text}
             </div>
           </div>
@@ -1274,6 +1820,20 @@ export default function App() {
           zIndex={zIndexOf("myspace")} onFocus={() => bringToFront("myspace")}
         >
           <MySpaceContent user={currentUser} onOpenStory={handleOpenStory} />
+        </Window>
+      )}
+
+      {accessibility.open && (
+        <Window title="Accessibility" initialX={cx - 220} initialY={cy - 200} initialWidth={440} initialHeight={420}
+          onClose={accessibility.closeWin} onMinimize={accessibility.minimizeWin} isMinimized={accessibility.minimized}
+          zIndex={zIndexOf("accessibility")} onFocus={() => bringToFront("accessibility")}
+        >
+          <AccessibilityContent
+            user={currentUser}
+            onPrefsChange={(p) => { setPrefs(p); setLocalPrefs(p); }}
+            local={localPrefs}
+            setLocal={setLocalPrefs}
+          />
         </Window>
       )}
 

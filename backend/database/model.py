@@ -13,6 +13,7 @@ from sqlalchemy.orm import relationship
 from .db import Base
 from pydantic import BaseModel  
 
+
 class Story(Base):
     __tablename__ = "stories"
 
@@ -48,7 +49,12 @@ class User(Base):
 
     stories = relationship("Story",back_populates="author", cascade="all,delete-orphan")
     comments = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
-
+    reading_preferences = relationship(
+        "UserReadingPreference",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False
+    )
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -65,7 +71,22 @@ class Comment(Base):
     user = relationship("User", back_populates="comments")
     parent = relationship("Comment", remote_side=[commentid], backref="replies")
 
+class UserReadingPreference(Base):
+    __tablename__ = "user_reading_preferences"
 
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+
+    font_size = Column(String, nullable=False, default="medium")
+    font_weight = Column(String, nullable=False, default="normal")
+    line_spacing = Column(String, nullable=False, default="normal")
+    letter_spacing = Column(String, nullable=False, default="normal")
+    theme = Column(String, nullable=False, default="original")
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="reading_preferences")
 
 
 

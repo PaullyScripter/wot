@@ -1,7 +1,6 @@
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import BaseModel, Field
 from datetime import datetime
-
 
 
 #Auth Schema
@@ -61,6 +60,25 @@ class CommentOut(BaseModel):
     userid: int
     parent_comment_id: Optional[int] = None
     content: str
+
+    class Config:
+        from_attributes = True
+
+class ReadingPreferenceBase(BaseModel):
+    font_size: Literal["small", "medium", "large", "xlarge"] = "medium"
+    font_weight: Literal["normal", "bold"] = "normal"
+    line_spacing: Literal["normal", "relaxed", "loose"] = "normal"
+    letter_spacing: Literal["normal", "wide"] = "normal"
+    theme: Literal["original", "dark", "high_contrast"] = "original"
+
+class ReadingPreferenceUpdate(ReadingPreferenceBase):
+    pass
+
+class ReadingPreferenceOut(ReadingPreferenceBase):
+    id: int
+    user_id: int
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     class Config:
         from_attributes = True

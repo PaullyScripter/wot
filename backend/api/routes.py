@@ -35,6 +35,8 @@ from ..features.stories import list_all_stories, get_story_by_id, create_new_sto
 from ..features.auth import authenticate_user, register_user
 from ..features.comments import make_a_comment
 
+from .schemas import ReadingPreferenceOut, ReadingPreferenceUpdate
+from ..features.preferences import get_user_preferences, upsert_user_preferences
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -188,7 +190,45 @@ def create_comment(
     )
 
     
+@router.get("/users/{user_id}/reading-preferences", response_model=ReadingPreferenceOut)
+def read_preferences(user_id: int, db: Session = Depends(get_db)):
+    prefs = get_user_preferences(db, user_id)
+    if prefs is None:
+        raise HTTPException(status_code=404, detail="Reading preferences not found")
+    return prefs
 
+
+@router.get("/users/{user_id}/reading-preferences", response_model=ReadingPreferenceOut)
+def read_preferences(user_id: int, db: Session = Depends(get_db)):
+    prefs = get_user_preferences(db, user_id)
+
+    if prefs is None:
+        prefs = UserReadingPreference(
+            user_id=user_id,
+            font_size="medium",
+            font_weight="normal",
+            line_spacing="normal",
+            letter_spacing="normal",
+            theme="original",
+        )
+        db.add(prefs)
+        db.commit()
+        db.refresh(prefs)
+
+    return prefs
+
+@router.put("/users/{user_id}/reading-preferences", response_model=ReadingPreferenceOut)
+def update_preferences(
+    user_id: int,
+    payload: ReadingPreferenceUpdate,
+    db: Session = Depends(get_db)
+):
+    prefs, error = upsert_user_preferences(db, user_id, payload)
+
+    if error:
+        raise HTTPException(status_code=404, detail=error)
+
+    return prefs
 
 
 
