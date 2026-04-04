@@ -1410,9 +1410,9 @@ function AccessibilityContent({ user, onPrefsChange, local, setLocal }: {
       });
       if (!res.ok) throw new Error("Save failed");
       onPrefsChange(local);
-      setMsg("✅ Settings saved!");
+      setMsg("Settings saved!");
     } catch {
-      setMsg("❌ Failed to save.");
+      setMsg("Failed to save.");
     } finally {
       setSaving(false);
     }
