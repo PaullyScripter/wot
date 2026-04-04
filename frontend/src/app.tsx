@@ -449,7 +449,7 @@ function AdPopup({ ad, onClose, zIndex, onFocus }: { ad: AdData; onClose: () => 
             )}
             {ad.story.author_name && (
               <div style={{ fontFamily: titleFont, fontSize: 12, fontStyle: "italic", color: "rgba(255,255,255,0.75)" }}>
-                by {ad.story.author_name}
+                uploaded by {ad.story.author_name}
               </div>
             )}
           </>
@@ -1768,7 +1768,7 @@ export default function App() {
             {/* Title header */}
             <div style={{ background: "linear-gradient(to right, #000080, #4040c0)", color: "white", padding: "8px 12px", flexShrink: 0, marginBottom: 0 }}>
               <div style={{ fontSize: 14, fontWeight: "bold", marginBottom: 2 }}>{story.title}</div>
-              <div style={{ fontSize: 10, opacity: 0.85 }}>by {story.author_name || "Unknown"}</div>
+              <div style={{ fontSize: 10, opacity: 0.85 }}>uploaded by {story.author_name || "Unknown"}</div>
             </div>
 
             {/* Metadata strip */}
