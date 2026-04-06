@@ -44,11 +44,14 @@ class StoryOut(BaseModel):
     year: Optional[int] = None
     category: Optional[str] = None
     text: str
+    citation: str
+    visibility: str
     views: int
     author_name: Optional[str] = None 
     like_count: int | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+    
     class Config:
         from_attributes = True
 
