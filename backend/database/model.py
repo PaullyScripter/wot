@@ -26,12 +26,14 @@ class Story(Base):
     category = Column(String, nullable=True)
 
     text = Column(Text, nullable=False)
+    citation = Column( Text, nullable=False)
+    visibility = Column(Text, nullable=False)
+
     views = Column(Integer, default=0, nullable=False)
     like_count = Column(Integer, default=0)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
 
     author = relationship("User")
     comments = relationship("Comment", back_populates="story", cascade="all, delete-orphan")

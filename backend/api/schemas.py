@@ -24,16 +24,20 @@ class UserOut(BaseModel):
 
 #Story Schemas
 class StoryCreate(BaseModel):
-    user_id: int
+    email: str
+    password: str
     title: str
     culture: Optional[str] = None
     country: Optional[str] = None
     year: Optional[int] = None
     category: Optional[str] = None
     text: str
+    citation: str
+    visibility: str
 
 class StoryOut(BaseModel):
     id: int
+    user_id: int | None = None
     title: str
     culture: Optional[str] = None
     country: Optional[str] = None
