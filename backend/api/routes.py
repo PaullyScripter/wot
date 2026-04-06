@@ -40,21 +40,6 @@ from ..features.preferences import get_user_preferences, upsert_user_preferences
 
 router = APIRouter(prefix="/api", tags=["api"])
 
-""" 
-TO BE REPLACED
-class SearchResultItem(BaseModel):
-    id: int
-    title: str
-    culture: Optional[str] = None
-    snippet: str
-    views: int
-
-class SearchResponse(BaseModel):
-    query: str
-    total: int
-    results: List[SearchResultItem]
-"""
-
 
 @router.get("/stories", response_model=List[StoryOut])
 def list_stories(db: Session = Depends(get_db)):
@@ -62,8 +47,15 @@ def list_stories(db: Session = Depends(get_db)):
 
 #receives story_id from URL + queries DB for ID
 @router.get("/stories/{story_id}", response_model = StoryOut)
-def get_story(story_id: int, db: Session = Depends(get_db)):
-    story = get_story_by_id(db, story_id)
+def get_story(story_id: int, db: Session = Depends(get_db), email: str = None, password: str = None):
+    current_user = None
+    if email and password:
+        user, error = authenticate_user(db, email, password)
+        if not error:
+            current_user = user
+
+    story = get_story_by_id(db, story_id, current_user)
+
     if story is None:
         raise HTTPException(status_code = 404, detail = "Story not found")
     return story
@@ -72,75 +64,20 @@ def get_story(story_id: int, db: Session = Depends(get_db)):
 def get_comments(story_id: int, db:Session = Depends(get_db)):
     return db.query(Comment).filter(Comment.storyid == story_id).all()
 
-"""
-FIXME 
-#registers GET endpoint for search
-@router.get("/search", response_model = SearchResponse)
-def search_stories(
-    q: str = Query(..., min_length = 1), #required at least 1 text
-    limit: int  = Query(10, ge = 1, le = 100), #items per page 1-100
-    offset: int = Query(0 , ge = 0), #items to skip
-    sort: str = Query("view" , pattern = "^(views|newest|relevance)$"), 
-    db: Session = Depends(get_db), 
-):
-    
-    query_text = q.strip() #removes space
-    pattern = f"%{query_text}%" #matches texts
-
-    #search filter => ilike: case-insensitive match in Postgres
-    filters = or_(
-        Story.title.ilike(pattern),
-        Story.culture.ilike(pattern),
-        Story.text.ilike(pattern),
-    )
-
-    #find how many searches match
-    total = db.query(func.count(Story.id)).filter(filters).scalar() or 0
-
-    #sort
-    if sort == "newest":
-        order_by = (Story.id.desc(),)
-    else:
-        order_by = (Story.views.desc(), Story.id.desc())
-
-    #db query
-    rows = (
-        db.query(Story)
-        .filter(filters)
-        .order_by(*order_by)
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
-
-    #display result snippets until user decide to open or not
-    results: List[SearchResultItem] = []
-    for s in rows:
-        raw = s.text or ""
-        snippet = raw[:160].strip() + ("..." if len(raw) > 160 else "")
-        results.append(
-            SearchResultItem(
-                id = s.id,
-                title = s.title,
-                culture = s.culture,
-                snippet = snippet,
-                views = s.views,
-            )
-        )
-        #return typed Pydantic object
-        return SearchResponse(query = query_text, total = int(total),  results = results)
-
- """
-
 
 @router.post("/stories", response_model=StoryOut)
 def create_story(payload: StoryCreate, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == payload.user_id).first()
 
-    if not user:
+    current_user, error = authenticate_user(
+        db = db,
+        email = payload.email,
+        password = payload.password,
+    )
+
+    if error:
         raise HTTPException(status_code=401, detail="Invalid user")
 
-    return create_new_story(db, payload)
+    return create_new_story(db, current_user, payload)
 
 @router.post("/stories/{story_id}/views")
 def increment_views(story_id: int, db:Session = Depends(get_db)):
