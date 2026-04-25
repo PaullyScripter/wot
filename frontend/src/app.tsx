@@ -874,46 +874,29 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
       Visibility <span style={{ color: "red" }}>*</span>
     </div>
 
-    <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-      <button
-        type="button"
-        onClick={() => setVisibility("public")}
-        style={{
-          fontFamily: ff,
-          fontSize: 11,
-          padding: "4px 12px",
-          cursor: "pointer",
-          background: visibility === "public" ? "#a0a0a0" : "#c0c0c0",
-          border: "2px solid",
-          borderTopColor: visibility === "public" ? "#808080" : "#fff",
-          borderLeftColor: visibility === "public" ? "#808080" : "#fff",
-          borderRightColor: visibility === "public" ? "#fff" : "#808080",
-          borderBottomColor: visibility === "public" ? "#fff" : "#808080",
-          fontWeight: visibility === "public" ? "bold" : "normal",
-        }}
-      >
-        Public
-      </button>
-
-      <button
-        type="button"
-        onClick={() => setVisibility("private")}
-        style={{
-          fontFamily: ff,
-          fontSize: 11,
-          padding: "4px 12px",
-          cursor: "pointer",
-          background: visibility === "private" ? "#a0a0a0" : "#c0c0c0",
-          border: "2px solid",
-          borderTopColor: visibility === "private" ? "#808080" : "#fff",
-          borderLeftColor: visibility === "private" ? "#808080" : "#fff",
-          borderRightColor: visibility === "private" ? "#fff" : "#808080",
-          borderBottomColor: visibility === "private" ? "#fff" : "#808080",
-          fontWeight: visibility === "private" ? "bold" : "normal",
-        }}
-      >
-        Private
-      </button>
+    <div style={{ display: "flex", gap: 16, marginBottom: 8 }}>
+      {(["public", "private"] as const).map((opt) => (
+        <div
+          key={opt}
+          onClick={() => setVisibility(opt)}
+          style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", userSelect: "none" }}
+        >
+          <div style={{
+            width: 12, height: 12, borderRadius: "50%",
+            background: "#c0c0c0",
+            border: "2px solid",
+            borderTopColor: "#808080", borderLeftColor: "#808080",
+            borderBottomColor: "#fff", borderRightColor: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            {visibility === opt && (
+              <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#000" }} />
+            )}
+          </div>
+          <span style={{ fontFamily: ff, fontSize: 11, textTransform: "capitalize" }}>{opt}</span>
+        </div>
+      ))}
     </div>
       <div style={{ borderTop: "1px solid #808080", marginTop: 10, paddingTop: 8, display: "flex", justifyContent: "flex-end", flexShrink: 0 }}>
         <button
