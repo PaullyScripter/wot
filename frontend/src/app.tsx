@@ -816,7 +816,7 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
           <textarea
             value={citation}
             onChange={e => updateCitation(index, e.target.value)}
-            placeholder={`MLA citation ${index + 1}`}
+            placeholder={`the story's credibility ${index + 1}`}
             style={{
               ...inputStyle,
               minHeight: 48,
