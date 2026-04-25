@@ -32,7 +32,7 @@ from .schemas import (
 
 from ..features.engagement import increment_story_views
 from ..features.stories import list_all_stories, get_story_by_id, create_new_story
-from ..features.auth import authenticate_user, register_user
+from ..features.auth import authenticate_user, register_user, get_current_user, get_current_user_by_id
 from ..features.comments import make_a_comment
 
 from .schemas import ReadingPreferenceOut, ReadingPreferenceUpdate
@@ -66,13 +66,8 @@ def get_comments(story_id: int, db:Session = Depends(get_db)):
 
 
 @router.post("/stories", response_model=StoryOut)
-def create_story(payload: StoryCreate, db: Session = Depends(get_db)):
-
-    current_user, error = authenticate_user(
-        db = db,
-        email = payload.email,
-        password = payload.password,
-    )
+def create_story(payload: StoryCreate, user_id: int, db: Session = Depends(get_db)):
+    current_user, error = get_current_user_by_id(db, user_id)
 
     if error:
         raise HTTPException(status_code=401, detail="Invalid user")

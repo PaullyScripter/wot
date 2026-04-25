@@ -72,7 +72,11 @@ def get_current_user(db: Session, email: str, password: str):
     
     return user, None
     
-
+def get_current_user_by_id(db: Session, user_id: int):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return None, "User not found"
+    return user, None
 
 
 

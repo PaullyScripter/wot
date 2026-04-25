@@ -649,10 +649,12 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
         user_id: user.userId,
         title: title.trim(),
         culture: culture.trim() || null,
-        country: country.trim(),
+        country: country.trim() || null,
         year: year ? Number(year) : null,
-        category: category,
+        category: category || null,
         text: text,
+        citation: "",
+        visibility: "public",
       };
       const res = await fetch(`${API_BASE}/api/stories`, {
         method: "POST",
