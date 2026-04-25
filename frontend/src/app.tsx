@@ -629,10 +629,35 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [posted, setPosted] = useState<PostedStory | null>(null);
+  const [citations, setCitations] = useState<string[]>([""]);
+  const [visibility, setVisibility] = useState<"public" | "private">("public");
 
   function resetForm() {
-    setTitle(""); setCulture(""); setCountry(""); setYear(""); setCategory(""); setText("");
-    setError(""); setPosted(null);
+    setTitle("");
+    setCulture("");
+    setCountry("");
+    setYear("");
+    setCategory("");
+    setText("");
+    setCitations([""]);
+    setVisibility("public");
+    setError("");
+    setPosted(null);
+  }
+
+  function updateCitation(index: number, value: string) {
+    setCitations(prev => prev.map((c, i) => (i === index ? value : c)));
+  }
+
+  function addCitationField() {
+    setCitations(prev => [...prev, ""]);
+  }
+
+  function removeCitationField(index: number) {
+    setCitations(prev => {
+      if (prev.length === 1) return [""];
+      return prev.filter((_, i) => i !== index);
+    });
   }
 
   async function handleSubmit() {
@@ -643,7 +668,13 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
     if (!text.trim()) { setError("Story text is required."); return; }
     if (year && (isNaN(Number(year)) || Number(year) < 0)) { setError("Year must be a valid number."); return; }
 
+    const cleanedCitations = citations.map(c => c.trim()).filter(Boolean);
+    if (cleanedCitations.length === 0) {
+      setError("One MLA formatted citation is required.");
+      return;
+    }
     setLoading(true);
+
     try {
       const body = {
         user_id: user.userId,
@@ -652,11 +683,11 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
         country: country.trim() || null,
         year: year ? Number(year) : null,
         category: category || null,
-        text: text,
-        citation: "",
-        visibility: "public",
+        text: text.trim(),
+        citation: cleanedCitations.join("\n"),
+        visibility,
       };
-      const res = await fetch(`${API_BASE}/api/stories`, {
+            const res = await fetch(`${API_BASE}/api/stories`, {
         method: "POST",
         headers: { "Content-Type": "application/json; charset=utf-8" },
         body: JSON.stringify(body),
@@ -775,6 +806,63 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
             padding: "4px 6px",
           }}
         />
+    <div style={{ marginTop: 10, marginBottom: 4, fontFamily: ff, fontSize: 11 }}>
+      Citation(s) <span style={{ color: "red" }}>*</span>
+    </div>
+
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      {citations.map((citation, index) => (
+        <div key={index} style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+          <textarea
+            value={citation}
+            onChange={e => updateCitation(index, e.target.value)}
+            placeholder={`MLA citation ${index + 1}`}
+            style={{
+              ...inputStyle,
+              minHeight: 48,
+              resize: "vertical",
+              lineHeight: 1.4,
+              padding: "4px 6px",
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => removeCitationField(index)}
+            style={{
+              fontFamily: ff,
+              fontSize: 11,
+              background: "#c0c0c0",
+              border: "2px solid",
+              borderColor: "#fff #808080 #808080 #fff",
+              padding: "4px 8px",
+              cursor: "pointer",
+              minWidth: 28,
+            }}
+            title="Remove citation"
+          >
+            X
+          </button>
+        </div>
+      ))}
+
+      <div>
+        <button
+          type="button"
+          onClick={addCitationField}
+          style={{
+            fontFamily: ff,
+            fontSize: 11,
+            background: "#c0c0c0",
+            border: "2px solid",
+            borderColor: "#fff #808080 #808080 #fff",
+            padding: "4px 10px",
+            cursor: "pointer",
+          }}
+        >
+          + Add Citation
+        </button>
+      </div>
+    </div>
 
         {error && (
           <div style={{ fontFamily: ff, fontSize: 11, color: "#cc0000", background: "#ffeeee", border: "1px solid #cc0000", padding: "3px 8px", marginTop: 4 }}>
@@ -782,7 +870,38 @@ function PostStoryContent({ user, onViewPosted }: { user: SessionUser; onViewPos
           </div>
         )}
       </div>
+    <div style={{ marginTop: 10, marginBottom: 4, fontFamily: ff, fontSize: 11 }}>
+      Visibility <span style={{ color: "red" }}>*</span>
+    </div>
 
+    <div style={{ display: "flex", gap: 16, marginBottom: 8 }}>
+      {(["public", "private"] as const).map((opt) => (
+        <div
+          key={opt}
+          onClick={() => setVisibility(opt)}
+          style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", userSelect: "none" }}
+        >
+          {/* Win95-style radio circle */}
+          <div style={{
+            width: 12, height: 12, borderRadius: "50%",
+            background: "#c0c0c0",
+            border: "2px solid",
+            borderTopColor: "#808080", borderLeftColor: "#808080",
+            borderBottomColor: "#fff", borderRightColor: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            {visibility === opt && (
+              <div style={{
+                width: 5, height: 5, borderRadius: "50%",
+                background: "#000",
+              }} />
+            )}
+          </div>
+          <span style={{ fontFamily: ff, fontSize: 11, textTransform: "capitalize" }}>{opt}</span>
+        </div>
+      ))}
+    </div>
       <div style={{ borderTop: "1px solid #808080", marginTop: 10, paddingTop: 8, display: "flex", justifyContent: "flex-end", flexShrink: 0 }}>
         <button
           type="button"
