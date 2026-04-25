@@ -79,7 +79,7 @@ def create_new_story(db: Session, current_user, payload):
             detail="Must contain at least 1 MLA formatted citaiton."
         )
     
-    if payload.visbility not in VISIBILITY: 
+    if payload.visibility not in VISIBILITY: 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Must define visibility(Public or Private)."
