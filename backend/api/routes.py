@@ -66,10 +66,10 @@ def get_comments(story_id: int, db:Session = Depends(get_db)):
 
 
 @router.post("/stories", response_model=StoryOut)
-def create_story(payload: StoryCreate, user_id: int, db: Session = Depends(get_db)):
-    current_user, error = get_current_user_by_id(db, user_id)
+def create_story(payload: StoryCreate, db: Session = Depends(get_db)):
+    current_user = db.query(User).filter(User.id == payload.user_id).first()
 
-    if error:
+    if not current_user:
         raise HTTPException(status_code=401, detail="Invalid user")
 
     return create_new_story(db, current_user, payload)

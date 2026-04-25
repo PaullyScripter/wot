@@ -23,6 +23,7 @@ class UserOut(BaseModel):
 
 #Story Schemas
 class StoryCreate(BaseModel):
+    user_id: int
     title: str
     culture: Optional[str] = None
     country: Optional[str] = None
