@@ -163,5 +163,7 @@ def update_preferences(
     return prefs
 
 
-
+@router.get("/api/my-stories")
+def get_my_stories(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    return list_user_stories(db, current_user)
         
