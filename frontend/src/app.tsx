@@ -961,11 +961,13 @@ function MySpaceContent({ user, onOpenStory }: { user: SessionUser; onOpenStory:
     async function load() {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE}/api/stories`);
+        const res = await fetch(`${API_BASE}/api/my-stories`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         if (!res.ok) throw new Error("Failed to load");
-        const all: Story[] = await res.json();
-        const mine = all.filter(s => (s as Story & { user_id?: number }).user_id === user.userId
-          || (s.author_name && s.author_name === user.username));
+        const mine: Story[] = await res.json();
         setStories(mine);
       } catch {
         setError("Failed to load stories.");

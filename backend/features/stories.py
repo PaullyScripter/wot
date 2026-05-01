@@ -106,6 +106,13 @@ def create_new_story(db: Session, current_user, payload):
     return map_story(story)
 
 
-
+def list_user_stories(db: Session, current_user):
+    stories = (
+        db.query(Story)
+        .options(joinedload(Story.author))
+        .filter(Story.user_id == current_user.id)
+        .all()
+    )
+    return [map_story(s) for s in stories]
 
 
