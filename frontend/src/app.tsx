@@ -24,6 +24,7 @@ type Story = {
   author_name?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  visibility?: string;
 };
 
 type StoryWin = {
@@ -1066,6 +1067,7 @@ function MySpaceContent({ user, onOpenStory }: { user: SessionUser; onOpenStory:
                 <th style={thStyle}>Year</th>
                 <th style={thStyle}>Views</th>
                 <th style={thStyle}>Likes</th>
+                <th style={thStyle}>Visibility</th>
                 <th style={{ ...thStyle, borderRight: "none" }}>Posted</th>
               </tr>
             </thead>
@@ -1083,6 +1085,7 @@ function MySpaceContent({ user, onOpenStory }: { user: SessionUser; onOpenStory:
                   <td style={tdStyle}>{s.year || "—"}</td>
                   <td style={tdStyle}>{formatViews(s.views)}</td>
                   <td style={tdStyle}>{s.like_count ?? 0}</td>
+                  <td style={tdStyle}>{s.visibility}</td>
                   <td style={{ ...tdStyle, borderRight: "none" }}>{formatDate(s.created_at)}</td>
                 </tr>
               ))}
