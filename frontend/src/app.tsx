@@ -961,11 +961,7 @@ function MySpaceContent({ user, onOpenStory }: { user: SessionUser; onOpenStory:
     async function load() {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE}/api/my-stories`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const res = await fetch(`${API_BASE}/api/my-stories?user_id=${user.userId}`);
         if (!res.ok) throw new Error("Failed to load");
         const mine: Story[] = await res.json();
         setStories(mine);
