@@ -5,6 +5,9 @@ from sqlalchemy.orm import Session
 
 
 from ..database.model import User
+from fastapi import Depends, HTTPException
+from ..database.db import get_db
+
 
 PEPPER = os.getenv("PEPPER")
 if not PEPPER:
@@ -64,13 +67,16 @@ def authenticate_user(db: Session, email: str, password: str):
     
     return user, None
 
-def get_current_user(db: Session, email: str, password: str):
-    user, error = authenticate_user(db=db, email=email, password=password)
-    
-    if error:
-        return None, error
-    
-    return user, None
+def get_current_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid user")
+
+    return user
     
 def get_current_user_by_id(db: Session, user_id: int):
     user = db.query(User).filter(User.id == user_id).first()

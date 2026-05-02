@@ -31,7 +31,7 @@ from .schemas import (
 )
 
 from ..features.engagement import increment_story_views
-from ..features.stories import list_all_stories, get_story_by_id, create_new_story
+from ..features.stories import list_all_stories, get_story_by_id, create_new_story, list_user_stories
 from ..features.auth import authenticate_user, register_user, get_current_user, get_current_user_by_id
 from ..features.comments import make_a_comment
 
@@ -163,10 +163,15 @@ def update_preferences(
     return prefs
 
 
-@router.get("/api/my-stories")
+@router.get("/my-stories")
 def get_my_stories(
+    user_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
 ):
+    current_user = db.query(User).filter(User.id == user_id).first()
+
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid user")
+
     return list_user_stories(db, current_user)
         
