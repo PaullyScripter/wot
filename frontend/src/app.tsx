@@ -494,13 +494,22 @@ const BOOT_LINES = [
 
 const READY_DELAY = 4800; // when the "ready" prompt appears // ms before auto-dismiss
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PATCH — replace the SplashScreen function in app.tsx with this version.
+// Everything else in app.tsx stays the same.
+// ─────────────────────────────────────────────────────────────────────────────
+
 function SplashScreen({ onDone }: { onDone: () => void }) {
   const [visibleLines, setVisibleLines] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
   const [fading, setFading] = useState(false);
 
+  // Read the flag set by main.tsx
+  const isMobile =
+    (window as Window & { __wotMobileUnsupported?: boolean }).__wotMobileUnsupported === true;
+
   function dismiss() {
-    if (!ready) return;
+    if (!ready || isMobile) return; // block dismissal on unsupported devices
     setFading(true);
     setTimeout(onDone, 500);
   }
@@ -536,7 +545,7 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
         fontFamily: "'Courier New', Courier, monospace",
         fontSize: "clamp(11px, 1.4vw, 15px)",
         color: "#aaa",
-        cursor: ready ? "pointer" : "default",
+        cursor: (ready && !isMobile) ? "pointer" : "default",
         transition: fading ? "opacity 0.5s ease" : "none",
         opacity: fading ? 0 : 1,
         userSelect: "none",
@@ -553,7 +562,7 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
         display: "flex", justifyContent: "space-between",
       }}>
         <span>WOT BIOS Setup Utility</span>
-        <span>{ready ? "Click or press any key to continue" : "Loading..."}</span>
+        <span>{ready && !isMobile ? "Click or press any key to continue" : "Loading..."}</span>
       </div>
 
       <div style={{ marginTop: 32, width: "100%", maxWidth: 680 }}>
@@ -571,7 +580,7 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
           </div>
         ))}
 
-        {ready && (
+        {ready && !isMobile && (
           <div style={{ marginTop: 24, color: "#00ff00", fontWeight: "bold", animation: "none" }}>
             Your computer is ready. Click or press any key to continue to WOT.
           </div>
@@ -579,6 +588,87 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
 
         {!ready && <Cursor />}
       </div>
+
+      {/* ── Mobile / tablet unsupported overlay ───────────────────────────── */}
+      {isMobile && (
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 10,
+          background: "rgba(0,0,0,0.88)",
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+          padding: "5vw",
+          fontFamily: "'Courier New', Courier, monospace",
+          textAlign: "center",
+          pointerEvents: "all",
+        }}>
+          {/* Win9x-style dialog box */}
+          <div style={{
+            background: "#c0c0c0",
+            border: "3px solid",
+            borderColor: "#fff #808080 #808080 #fff",
+            boxShadow: "4px 4px 0 #000",
+            maxWidth: 340,
+            width: "90vw",
+          }}>
+            {/* Title bar */}
+            <div style={{
+              background: "linear-gradient(to right, #000080, #1084d0)",
+              color: "#fff",
+              fontFamily: "'MS Sans Serif', Tahoma, Geneva, Arial, sans-serif",
+              fontSize: 12, fontWeight: "bold",
+              padding: "4px 8px",
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+            }}>
+              <span>FATAL ERROR — Device Not Supported</span>
+              <div style={{
+                width: 16, height: 14, background: "#c0c0c0", color: "#000",
+                border: "1px solid", borderColor: "#fff #808080 #808080 #fff",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 10, fontWeight: "bold", cursor: "default",
+              }}>✕</div>
+            </div>
+
+            {/* Body */}
+            <div style={{
+              padding: "20px 18px 14px",
+              fontFamily: "'MS Sans Serif', Tahoma, Geneva, Arial, sans-serif",
+              fontSize: 12,
+              color: "#000",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 14,
+            }}>
+              {/* Stop icon */}
+              <div style={{
+                width: 48, height: 48, borderRadius: "50%",
+                background: "#cc0000",
+                border: "3px solid #800000",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: "#fff", fontSize: 28, fontWeight: "bold", flexShrink: 0,
+              }}>!</div>
+
+              <div style={{ lineHeight: 1.6, textAlign: "center" }}>
+                <strong>WOT Online does not support mobile or tablet devices.</strong>
+                <br /><br />
+                Please switch to a <strong>desktop PC</strong> or <strong>laptop</strong> to
+                access Weave Our Tapestry.
+                <br /><br />
+                <span style={{ color: "#666", fontSize: 11 }}>
+                  Screen width detected: {window.innerWidth}px
+                  &nbsp;(minimum required: 1024px)
+                </span>
+              </div>
+
+              <div style={{
+                background: "#000080", color: "#ffcc00",
+                padding: "6px 14px", fontSize: 11, fontWeight: "bold",
+                border: "2px solid", borderColor: "#fff #808080 #808080 #fff",
+                letterSpacing: 0.5,
+              }}>
+                WOT BIOS — Boot halted
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
