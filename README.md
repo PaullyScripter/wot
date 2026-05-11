@@ -56,10 +56,7 @@ npm run dev
 
 ## References
 
-- Windows 98
-- Wikipedia
-- AO3
-- Reddit
+- Windows 95/98, Wikipedia, AO3, Reddit, Internet Archive.
 
 ## Authors
 
