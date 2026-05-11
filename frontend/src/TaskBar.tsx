@@ -19,7 +19,7 @@ type TaskBarProps = {
 
 const ff = "'MS Sans Serif', Tahoma, Geneva, Arial, sans-serif";
 
-// ── Inline SVG icons (match desktop icons) ──────────────────────────────────
+// ── Inline SVG icons ─────────────────────────────────────────────────────────
 
 function MenuPcIcon() {
   return (
@@ -98,6 +98,115 @@ function MenuPowerIcon() {
   );
 }
 
+// ── Taskbar window icon set — one per window type ────────────────────────────
+
+/** WOT / search window icon (small, 18px) */
+function TaskWotIcon() {
+  return <WotIcon size={18} />;
+}
+
+/** My Account / login window icon */
+function TaskAccountIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 36 36" width={size} height={size} xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="4" width="28" height="20" rx="2" fill="#c0c0c0" stroke="#808080" strokeWidth="1"/>
+      <rect x="6" y="6" width="24" height="16" fill="#000080"/>
+      <rect x="14" y="24" width="8" height="3" fill="#808080"/>
+      <rect x="10" y="27" width="16" height="2" fill="#808080"/>
+      <circle cx="26" cy="22" r="1" fill="#00cc00"/>
+    </svg>
+  );
+}
+
+/** My Space / folder icon */
+function TaskFolderIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 36 36" width={size} height={size} xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="10" width="22" height="16" rx="1" fill="#c8a020" stroke="#886800" strokeWidth="1" />
+      <rect x="2" y="7" width="8" height="4" rx="1" fill="#c8a020" stroke="#886800" strokeWidth="1" />
+      <rect x="6" y="13" width="26" height="16" rx="1" fill="#f5c842" stroke="#b8920a" strokeWidth="1" />
+      <line x1="10" y1="18" x2="28" y2="18" stroke="#b8920a" strokeWidth="1" />
+      <line x1="10" y1="21" x2="28" y2="21" stroke="#b8920a" strokeWidth="1" />
+      <line x1="10" y1="24" x2="22" y2="24" stroke="#b8920a" strokeWidth="1" />
+    </svg>
+  );
+}
+
+/** Post a Story — pen icon */
+function TaskPenIcon() {
+  return (
+    <svg viewBox="0 0 36 36" width={18} height={18} xmlns="http://www.w3.org/2000/svg">
+      <g transform="rotate(-40, 18, 18)">
+        <rect x="15" y="4" width="7" height="20" rx="2" fill="#f5c842" stroke="#b8920a" strokeWidth="1" />
+        <rect x="20" y="5" width="2" height="16" rx="1" fill="#b8920a" />
+        <polygon points="15,24 22,24 18.5,31" fill="#d0d0d0" stroke="#888" strokeWidth="0.8" />
+        <polygon points="17.5,29 19.5,29 18.5,33" fill="#222" />
+        <rect x="15" y="3" width="7" height="3" rx="1.5" fill="#c0a020" stroke="#b8920a" strokeWidth="0.8" />
+      </g>
+    </svg>
+  );
+}
+
+/** Our Hometown icon */
+function TaskHometownIcon() {
+  return (
+    <svg viewBox="0 0 36 36" width={18} height={18} xmlns="http://www.w3.org/2000/svg">
+      <rect x="8" y="16" width="20" height="14" fill="#c08060" stroke="#808080" strokeWidth="1"/>
+      <polygon points="4,18 18,6 32,18" fill="#c04000" stroke="#808080" strokeWidth="1"/>
+      <rect x="14" y="22" width="8" height="8" fill="#000080"/>
+      <rect x="10" y="19" width="6" height="6" fill="#ffff99" stroke="#808080" strokeWidth="0.5"/>
+    </svg>
+  );
+}
+
+/** Accessibility icon */
+function TaskAccessibilityIcon() {
+  return (
+    <svg viewBox="0 0 36 36" width={18} height={18} xmlns="http://www.w3.org/2000/svg">
+      <circle cx="18" cy="8" r="4.5" fill="#d0d0d0" stroke="#555" strokeWidth="1.2" />
+      <rect x="13" y="14" width="10" height="11" rx="2" fill="#c0c0c0" stroke="#555" strokeWidth="1.1" />
+      <line x1="13" y1="16" x2="7" y2="22" stroke="#c0c0c0" strokeWidth="3" strokeLinecap="round" />
+      <line x1="23" y1="16" x2="29" y2="22" stroke="#c0c0c0" strokeWidth="3" strokeLinecap="round" />
+      <line x1="15" y1="25" x2="13" y2="33" stroke="#c0c0c0" strokeWidth="3" strokeLinecap="round" />
+      <line x1="21" y1="25" x2="23" y2="33" stroke="#c0c0c0" strokeWidth="3" strokeLinecap="round" />
+      <line x1="13" y1="16" x2="7" y2="22" stroke="#555" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="23" y1="16" x2="29" y2="22" stroke="#555" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="15" y1="25" x2="13" y2="33" stroke="#555" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="21" y1="25" x2="23" y2="33" stroke="#555" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Story / scroll icon */
+function TaskScrollIcon() {
+  return (
+    <svg viewBox="0 0 36 36" width={18} height={18} xmlns="http://www.w3.org/2000/svg">
+      <rect x="7" y="4" width="22" height="28" rx="2" fill="#f5f0e8" stroke="#888" strokeWidth="1" />
+      <line x1="11" y1="10" x2="25" y2="10" stroke="#aaa" strokeWidth="1.2" />
+      <line x1="11" y1="14" x2="25" y2="14" stroke="#aaa" strokeWidth="1.2" />
+      <line x1="11" y1="18" x2="25" y2="18" stroke="#aaa" strokeWidth="1.2" />
+      <line x1="11" y1="22" x2="20" y2="22" stroke="#aaa" strokeWidth="1.2" />
+      <rect x="5" y="4" width="4" height="28" rx="2" fill="#c8a020" stroke="#886800" strokeWidth="1" />
+      <rect x="27" y="4" width="4" height="28" rx="2" fill="#c8a020" stroke="#886800" strokeWidth="1" />
+    </svg>
+  );
+}
+
+/** Resolve icon component by window id */
+function resolveTaskIcon(id: string): React.ReactNode {
+  if (id === "search" || id === "about") return <TaskWotIcon />;
+  if (id === "hometown") return <TaskHometownIcon />;
+  if (id === "login" || id === "account") return <TaskAccountIcon />;
+  if (id === "myspace") return <TaskFolderIcon />;
+  if (id === "post") return <TaskPenIcon />;
+  if (id === "accessibility") return <TaskAccessibilityIcon />;
+  // story windows
+  if (id.startsWith("story-")) return <TaskScrollIcon />;
+  return <TaskWotIcon />;
+}
+
+// ── Clock ────────────────────────────────────────────────────────────────────
+
 function Clock() {
   const [time, setTime] = useState(() => new Date());
   useEffect(() => {
@@ -121,6 +230,8 @@ function Clock() {
   );
 }
 
+// ── Start menu items ──────────────────────────────────────────────────────────
+
 function MenuItem({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
   return (
     <div
@@ -139,10 +250,54 @@ function MenuSep() {
   return <div style={{ height: 1, background: "#808080", margin: "2px 4px", borderTop: "1px solid #fff" }} />;
 }
 
+// ── Quick-launch icons shown beside Start button ──────────────────────────────
+
+type QuickLaunchItem = {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+};
+
+function QuickLaunchBar({ items, onFocus }: { items: QuickLaunchItem[]; onFocus: (id: string) => void }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 1, padding: "0 4px", flexShrink: 0 }}>
+      {items.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          title={item.title}
+          onClick={() => onFocus(item.id)}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            width: 36, height: 36,
+            background: "transparent",
+            border: "none",
+            boxShadow: "none",
+            cursor: "pointer", flexShrink: 0, padding: 2,
+            borderRadius: 2,
+          }}
+        >
+          {item.icon}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── TaskBar ───────────────────────────────────────────────────────────────────
+
 export function TaskBar({ windows, activeId, onFocusWindow, isLoggedIn, username }: TaskBarProps) {
   const [startOpen, setStartOpen] = useState(false);
   const close = () => setStartOpen(false);
   const focus = (id: string) => { onFocusWindow(id); close(); };
+
+  const quickLaunch: QuickLaunchItem[] = [
+    { id: "search",  title: "WOT — Weave Our Tapestry", icon: <WotIcon size={28} /> },
+    { id: isLoggedIn ? "account" : "login", title: isLoggedIn && username ? username : "My Account", icon: <TaskAccountIcon size={28} /> },
+    { id: isLoggedIn ? "myspace" : "login", title: "My Space", icon: <TaskFolderIcon size={28} /> },
+  ];
 
   return (
     <>
@@ -176,13 +331,13 @@ export function TaskBar({ windows, activeId, onFocusWindow, isLoggedIn, username
             <MenuItem icon={<WotIcon size={16} />} label="WOT Online" onClick={() => focus("about")} />
             <MenuSep />
             <MenuItem icon={<WotIcon size={16} />} label="Weave Our Tapestry" onClick={() => focus("search")} />
-            <MenuItem icon={<MenuHometownIcon />} label="Our Hometown" onClick={() => focus("hometown")} />
-            <MenuItem icon={<MenuPenIcon />} label="Post a Story" onClick={() => focus(isLoggedIn ? "post" : "login")} />
-            <MenuItem icon={<MenuFolderIcon />} label="My Space" onClick={() => focus(isLoggedIn ? "myspace" : "login")} />
-            <MenuItem icon={<MenuHumanIcon />} label="Accessibility" onClick={() => focus("accessibility")} />
-            <MenuItem icon={<MenuPcIcon />} label={isLoggedIn && username ? username : "My Account"} onClick={() => focus(isLoggedIn ? "account" : "login")} />
+            <MenuItem icon={<MenuHometownIcon />}  label="Our Hometown"       onClick={() => focus("hometown")} />
+            <MenuItem icon={<MenuPenIcon />}        label="Post a Story"       onClick={() => focus(isLoggedIn ? "post" : "login")} />
+            <MenuItem icon={<MenuFolderIcon />}     label="My Space"           onClick={() => focus(isLoggedIn ? "myspace" : "login")} />
+            <MenuItem icon={<MenuHumanIcon />}      label="Accessibility"      onClick={() => focus("accessibility")} />
+            <MenuItem icon={<MenuPcIcon />}         label={isLoggedIn && username ? username : "My Account"} onClick={() => focus(isLoggedIn ? "account" : "login")} />
             <MenuSep />
-            <MenuItem icon={<MenuPowerIcon />} label="Shut Down..." onClick={close} />
+            <MenuItem icon={<MenuPowerIcon />}      label="Shut Down..."       onClick={close} />
           </div>
         </div>
       )}
@@ -194,6 +349,7 @@ export function TaskBar({ windows, activeId, onFocusWindow, isLoggedIn, username
         display: "flex", alignItems: "center", gap: 2, padding: "2px 4px",
         userSelect: "none",
       }}>
+        {/* Start button */}
         <button
           type="button"
           onClick={() => setStartOpen((v) => !v)}
@@ -213,6 +369,12 @@ export function TaskBar({ windows, activeId, onFocusWindow, isLoggedIn, username
 
         <div style={{ width: 2, height: 34, borderLeft: "1px solid #808080", borderRight: "1px solid #fff", margin: "0 2px", flexShrink: 0 }} />
 
+        {/* Quick-launch: WOT, My Account, My Space */}
+        <QuickLaunchBar items={quickLaunch} onFocus={onFocusWindow} />
+
+        <div style={{ width: 2, height: 34, borderLeft: "1px solid #808080", borderRight: "1px solid #fff", margin: "0 2px", flexShrink: 0 }} />
+
+        {/* Open window buttons */}
         <div style={{ flex: 1, display: "flex", gap: 2, overflow: "hidden", alignItems: "center" }}>
           {windows.map((win) => {
             const isActive = win.id === activeId && !win.isMinimized;
@@ -235,10 +397,9 @@ export function TaskBar({ windows, activeId, onFocusWindow, isLoggedIn, username
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 }}
               >
-                {win.id === "search" || win.id === "hometown" || win.id === "about"
-                  ? <WotIcon size={22} />
-                  : <span style={{ fontSize: 18, flexShrink: 0 }}>{win.icon ?? "🗔"}</span>
-                }
+                <span style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
+                  {resolveTaskIcon(win.id)}
+                </span>
                 <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{win.title}</span>
               </button>
             );
