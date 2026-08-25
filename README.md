@@ -1,6 +1,7 @@
 # Weave Our Tapestry
 
 Weave Our Tapestry is a platform where users can share stories, myths, legends, and epics connected to different cultures, while also exploring and learning about traditions from around the world.
+Our deployed website reference: https://weaveourtapestrydev.netlify.app/
 
 > [!WARNING]
 > WOT is still underdevelopment so in this readme you will only be able to view our progress.
